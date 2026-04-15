@@ -609,40 +609,282 @@
     font-size: 0.9rem;
 }
 
-/* ===== Responsive ===== */
-@media (max-width: 768px) {
-    .sds-hero {
-        padding: 35px 20px 30px;
-    }
-
-    .sds-hero h1 {
-        font-size: 1.6rem;
-    }
-
-    .sds-content {
-        padding: 20px 16px 40px;
-    }
-
-    .sds-question {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 10px;
-    }
-
-    .sds-radio-group {
-        width: 100%;
-        justify-content: flex-end;
-    }
-
-    .sds-gender-options {
-        flex-direction: column;
-    }
-
-    .sds-result-summary {
-        grid-template-columns: 1fr;
-    }
-
-    .sds-actions {
-        flex-direction: column;
-    }
+/* ===== New AI UI Components ===== */
+.sds-search-box {
+    position: relative;
+    margin-bottom: 24px;
 }
+
+.sds-search-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.sds-search-icon {
+    position: absolute;
+    left: 14px;
+    color: var(--color-tertiary);
+}
+
+.sds-search-input {
+    padding-left: 44px;
+}
+
+.sds-clear-search {
+    position: absolute;
+    right: 14px;
+    color: var(--color-tertiary);
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.sds-clear-search:hover {
+    color: var(--color-secondary);
+}
+
+.sds-suggestions-dropdown {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    z-index: 10;
+    max-height: 250px;
+    overflow-y: auto;
+}
+
+.sds-suggestion-item {
+    padding: 12px 16px;
+    font-size: 0.92rem;
+    color: var(--color-secondary);
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.sds-suggestion-item:hover {
+    background: var(--color-primary-light);
+    color: var(--color-primary);
+}
+
+/* Selected Tags */
+.sds-selected-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 24px;
+    min-height: 40px;
+}
+
+.sds-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: var(--color-primary-light);
+    color: var(--color-primary);
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.sds-tag svg {
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+
+.sds-tag svg:hover {
+    opacity: 1;
+}
+
+.sds-no-tags {
+    font-size: 0.88rem;
+    color: var(--color-tertiary);
+    font-style: italic;
+}
+
+/* Quick Select */
+.sds-quick-select h3 {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--color-secondary);
+    margin-bottom: 12px;
+}
+
+.sds-chip-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.sds-chip {
+    padding: 6px 14px;
+    border: 1.5px solid var(--color-border);
+    background: white;
+    border-radius: 20px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--color-tertiary);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.sds-chip:hover {
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+}
+
+.sds-chip.active {
+    background: var(--color-accent);
+    border-color: var(--color-accent);
+    color: white;
+}
+
+/* Results Grid */
+.sds-result-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 30px;
+}
+
+.sds-prediction-box, .sds-specialist-box {
+    padding: 24px;
+    border-radius: 16px;
+    text-align: center;
+}
+
+.sds-prediction-box {
+    background: var(--gradient-primary);
+    color: white;
+    grid-column: 1 / -1;
+}
+
+.sds-specialist-box {
+    background: white;
+    border: 2px solid var(--color-primary-light);
+    grid-column: 1 / -1;
+}
+
+.sds-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+    opacity: 0.9;
+}
+
+.sds-value {
+    font-size: 1.6rem;
+    font-weight: 800;
+}
+
+.sds-confidence-pill {
+    display: inline-block;
+    margin-top: 12px;
+    padding: 4px 12px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 700;
+}
+
+.capitalize {
+    text-transform: capitalize;
+}
+
+/* Doctor Result Cards */
+.sds-doctor-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.sds-doc-result-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px;
+    background: white;
+    border: 1px solid var(--color-border);
+    border-radius: 14px;
+    transition: all 0.3s;
+}
+
+.sds-doc-result-card:hover {
+    transform: translateX(5px);
+    border-color: var(--color-primary);
+}
+
+.sds-doc-icon {
+    font-size: 2rem;
+    background: var(--color-background);
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+}
+
+.sds-doc-meta {
+    flex: 1;
+}
+
+.sds-doc-meta h4 {
+    font-size: 1rem;
+    margin: 0;
+    color: var(--color-secondary);
+}
+
+.sds-doc-meta p {
+    font-size: 0.8rem;
+    margin: 0;
+    color: var(--color-tertiary);
+}
+
+.sds-channel-btn {
+    padding: 8px 16px;
+    background: var(--color-accent);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.sds-channel-btn:hover {
+    filter: brightness(1.1);
+}
+
+/* Medical Disclaimer */
+.sds-medical-disclaimer {
+    margin: 24px 0;
+    padding: 16px;
+    border-radius: 12px;
+    display: flex;
+    gap: 10px;
+    font-size: 0.78rem;
+    color: var(--color-tertiary);
+    line-height: 1.5;
+    background: rgba(0,0,0,0.03);
+}
+
+.glass {
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255,255,255,0.5);
+}
+
+@media (min-width: 640px) {
+    .sds-doctor-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}

@@ -58,7 +58,7 @@ function App() {
           <Route path="/ecare/payment/success" element={<SuccessPayment />} />
           <Route path="/ecare/payment/failed" element={<FailedPayment />} />
           <Route path="/ecare/report-explainer" element={<ReportExplainer />} />
-          <Route path="/ecare/smart-doctor" element={<SmartDocSuggestion />} />
+          <Route path="/ecare/smart-doc-suggestion" element={<SmartDocSuggestion />} />
           <Route path="/doctor-availability" element={<DoctorAvailability />} />
           <Route path="/doctorprofile" element={<DoctorProfile />} />
           <Route path="/ecare/doctors" element={<DoctorSearchResults />} />
