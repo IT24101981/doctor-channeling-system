@@ -11,11 +11,9 @@ const SmartDocSuggestion = () => {
     const heroRef = useRef(null);
     const contentRef = useRef(null);
 
-    const [age, setAge] = useState('');
-    const [gender, setGender] = useState('');
     const [selectedSymptoms, setSelectedSymptoms] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
-    const [step, setStep] = useState(1); // 1: info, 2: symptoms, 3: results
+    const [step, setStep] = useState(2); // Start from symptoms: 2: symptoms, 3: results
     const [isLoading, setIsLoading] = useState(false);
     const [results, setResults] = useState(null);
 
@@ -49,10 +47,6 @@ const SmartDocSuggestion = () => {
         }
     };
 
-    const handleSubmitInfo = () => {
-        if (!age || !gender) return;
-        setStep(2);
-    };
 
     const handleSubmitSymptoms = async () => {
         if (selectedSymptoms.length === 0) return;
@@ -92,8 +86,7 @@ const SmartDocSuggestion = () => {
                     prediction: predictData.prediction,
                     specialization: predictData.suggested_specialist,
                     doctors: doctorData.doctors || [],
-                    age: age,
-                    gender: gender
+                    confidence: predictData.confidence
                 });
                 setStep(3);
             } else {
@@ -108,10 +101,8 @@ const SmartDocSuggestion = () => {
     };
 
     const handleReset = () => {
-        setAge('');
-        setGender('');
         setSelectedSymptoms([]);
-        setStep(1);
+        setStep(2);
         setResults(null);
     };
 
@@ -134,18 +125,13 @@ const SmartDocSuggestion = () => {
 
                     {/* Progress Steps */}
                     <div className="sds-steps">
-                        <div className={`sds-step ${step >= 1 ? 'active' : ''} ${step > 1 ? 'completed' : ''}`}>
-                            <div className="sds-step-number">{step > 1 ? '✓' : '1'}</div>
-                            <span>Personal Info</span>
-                        </div>
-                        <div className="sds-step-line"></div>
                         <div className={`sds-step ${step >= 2 ? 'active' : ''} ${step > 2 ? 'completed' : ''}`}>
-                            <div className="sds-step-number">{step > 2 ? '✓' : '2'}</div>
+                            <div className="sds-step-number">{step > 2 ? '✓' : '1'}</div>
                             <span>Symptoms List</span>
                         </div>
                         <div className="sds-step-line"></div>
                         <div className={`sds-step ${step >= 3 ? 'active' : ''}`}>
-                            <div className="sds-step-number">3</div>
+                            <div className="sds-step-number">2</div>
                             <span>Medical Advice</span>
                         </div>
                     </div>
@@ -153,49 +139,6 @@ const SmartDocSuggestion = () => {
 
                 <section className="sds-content" ref={contentRef}>
 
-                    {/* Step 1: Patient Info */}
-                    {step === 1 && (
-                        <div className="sds-card">
-                            <div className="sds-card-header">
-                                <User className="sds-lucide-icon text-primary" size={24} />
-                                <h2>Tell us about yourself</h2>
-                            </div>
-                            <div className="sds-card-body">
-                                <div className="sds-form-group">
-                                    <label>Your Age</label>
-                                    <input
-                                        type="number"
-                                        className="sds-input"
-                                        placeholder="How old are you?"
-                                        value={age}
-                                        onChange={(e) => setAge(e.target.value)}
-                                        min="1"
-                                    />
-                                </div>
-                                <div className="sds-form-group">
-                                    <label>Your Gender</label>
-                                    <div className="sds-gender-options">
-                                        {['Male', 'Female', 'Other'].map(g => (
-                                            <button
-                                                key={g}
-                                                className={`sds-gender-btn ${gender === g ? 'active' : ''}`}
-                                                onClick={() => setGender(g)}
-                                            >
-                                                {g}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-                                <button
-                                    className="sds-btn sds-btn-primary"
-                                    onClick={handleSubmitInfo}
-                                    disabled={!age || !gender}
-                                >
-                                    Proceed to Symptom Check →
-                                </button>
-                            </div>
-                        </div>
-                    )}
 
                     {/* Step 2: Symptoms Search & Select */}
                     {step === 2 && (
@@ -274,8 +217,8 @@ const SmartDocSuggestion = () => {
                                 </div>
 
                                 <div className="sds-actions">
-                                    <button className="sds-btn sds-btn-secondary" onClick={() => setStep(1)}>
-                                        Back
+                                    <button className="sds-btn sds-btn-secondary" onClick={() => navigate('/eCare')}>
+                                        Cancel
                                     </button>
                                     <button
                                         className="sds-btn sds-btn-primary"
@@ -309,7 +252,7 @@ const SmartDocSuggestion = () => {
                                     <div className="sds-prediction-box">
                                         <div className="sds-label">Suspected Condition</div>
                                         <div className="sds-value capitalize">{results.prediction}</div>
-                                        <div className="sds-confidence-pill">85% Accuracy Confidence</div>
+                                        <div className="sds-confidence-pill">{(results.confidence * 100).toFixed(1)}% Accuracy Confidence</div>
                                     </div>
                                     
                                     <div className="sds-specialist-box">

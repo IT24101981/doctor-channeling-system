@@ -2,7 +2,7 @@ import joblib
 from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from huggingface_hub import InferenceClient
+from google import genai
 import os
 import mysql.connector
 from dotenv import load_dotenv
@@ -34,8 +34,8 @@ app.add_middleware(
 )
 
 # Configuration
-HUGGINGFACE_API_TOKEN = os.getenv("HUGGINGFACE_API_KEY")
-client = InferenceClient(api_key=HUGGINGFACE_API_TOKEN)
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+client = genai.Client(api_key=GEMINI_API_KEY)
 
 # Request Models
 class SymptomsRequest(BaseModel):
@@ -45,17 +45,21 @@ class ReportTextRequest(BaseModel):
     text: str
     language: str = "English"
 
-# LLM Query Function - Llama for Report Explanation
+# LLM Query Function - Gemini for Report Explanation
 def query_llm_for_report(report_text, language="English"):
-    """Send medical report text to Llama LLM for simple explanation"""
+    """Send medical report text to Gemini LLM for simple explanation"""
     prompt = REPORT_EXPLAIN_PROMPT.format(report_text=report_text, language=language)
-    completion = client.chat.completions.create(
-        model="meta-llama/Llama-3.1-8B-Instruct:novita",
-        messages=[{"role": "user", "content": prompt}],
-        max_tokens=800,
-        temperature=0.5
-    )
-    return completion.choices[0].message.content
+    
+    try:
+        # Using gemini-3.1-flash-lite-preview as requested
+        response = client.models.generate_content(
+            model="gemini-3.1-flash-lite-preview",
+            contents=prompt
+        )
+        return response.text
+    except Exception as e:
+        print(f"Error in Gemini request: {e}")
+        raise e
 
 # ENDPOINT 1: Medical Report Explainer (LLM)
 @app.post("/api/explain")
@@ -478,6 +482,10 @@ def predict(data: dict):
         features = [feature_vector]
         prediction_label = int(model.predict(features)[0])
         
+        # Calculate confidence score
+        probabilities = model.predict_proba(features)[0]
+        confidence = float(max(probabilities))
+        
         # Get disease name from map
         disease_name = disease_map.get(prediction_label)
         if not disease_name:
@@ -490,7 +498,8 @@ def predict(data: dict):
         return {
             "success": True,
             "prediction": disease_name,
-            "suggested_specialist": specialist
+            "suggested_specialist": specialist,
+            "confidence": confidence
         }
     except Exception as e:
         print(f"Prediction Error: {e}")
