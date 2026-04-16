@@ -62,9 +62,24 @@ exports.deleteDoctorAccount = async (req, res) => {
     let connection;
     try {
         connection = await db.getConnection();
+
+        // Get current date in Sri Lanka timezone (Asia/Colombo)
+        const slDate = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Colombo' });
+
+        // Check for upcoming or ongoing appointments
+        const [upcomingSlots] = await connection.execute(
+            "SELECT id FROM appointment_schedules WHERE doctor_id = ? AND schedule_date >= ?",
+            [id, slDate]
+        );
+
+        if (upcomingSlots.length > 0) {
+            return res.status(400).json({ 
+                message: 'Cannot delete doctor account. There are upcoming or ongoing appointments.' 
+            });
+        }
+
         await connection.beginTransaction();
 
-        // Deleted manual deletes of associated data as the database now handles this via ON DELETE SET NULL
         // 1. Delete from doctors
         const [result] = await connection.execute("DELETE FROM doctors WHERE id = ?", [id]);
 

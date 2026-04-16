@@ -182,15 +182,30 @@ const DoctorSignup = () => {
                             <div className="form-group">
                                 <label htmlFor="specialization">Specialization</label>
                                 <div className="input-wrapper">
-                                    <input
-                                        type="text"
+                                    <select
                                         id="specialization"
                                         name="specialization"
-                                        placeholder="e.g. Cardiologist"
                                         value={formData.specialization}
                                         onChange={handleChange}
                                         required
-                                    />
+                                        className="form-select"
+                                    >
+                                        <option value="">Select Specialization</option>
+                                        <option value="Dermatologist">Dermatologist</option>
+                                        <option value="Cardiologist">Cardiologist</option>
+                                        <option value="Neurologist">Neurologist</option>
+                                        <option value="ENT Specialist">ENT Specialist</option>
+                                        <option value="Gastroenterologist">Gastroenterologist</option>
+                                        <option value="Orthopedic Surgeon">Orthopedic Surgeon</option>
+                                        <option value="Psychiatrist">Psychiatrist</option>
+                                        <option value="Urologist">Urologist</option>
+                                        <option value="Gynecologist">Gynecologist</option>
+                                        <option value="Ophthalmologist">Ophthalmologist</option>
+                                        <option value="Dentist">Dentist</option>
+                                        <option value="Endocrinologist">Endocrinologist</option>
+                                        <option value="Emergency Care Physician">Emergency Care Physician</option>
+                                        <option value="General Physician">General Physician</option>
+                                    </select>
                                 </div>
                                 {errors.specialization && <span className="error-message">{errors.specialization}</span>}
                             </div>
