@@ -85,6 +85,7 @@ const Login = () => {
                     // Store patient info
                     localStorage.setItem('user', JSON.stringify(data.user));
                     localStorage.setItem('userType', data.userType);
+                    window.dispatchEvent(new Event('profileUpdated'));
                     navigate('/eCare');
                 }
             } else {

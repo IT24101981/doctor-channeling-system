@@ -13,8 +13,17 @@ const GlobalModals = () => {
             setPatientUser(JSON.parse(storedUser));
         }
 
-        const handleOpenProfile = () => setShowProfile(true);
-        const handleOpenHistory = () => setShowHistory(true);
+        const handleOpenProfile = () => {
+            const user = localStorage.getItem('user');
+            if (user) setPatientUser(JSON.parse(user));
+            setShowProfile(true);
+        };
+        
+        const handleOpenHistory = () => {
+            const user = localStorage.getItem('user');
+            if (user) setPatientUser(JSON.parse(user));
+            setShowHistory(true);
+        };
         
         // Listener for local storage changes (login/logout)
         const handleStorageChange = () => {
@@ -39,11 +48,9 @@ const GlobalModals = () => {
         };
     }, []);
 
-    if (!patientUser) return null;
-
     return (
         <>
-            {showProfile && (
+            {showProfile && patientUser && (
                 <Profile
                     patientId={patientUser.id}
                     onClose={() => setShowProfile(false)}
@@ -52,7 +59,7 @@ const GlobalModals = () => {
                     }}
                 />
             )}
-            {showHistory && (
+            {showHistory && patientUser && (
                 <AppointmentHistory
                     patientId={patientUser.id}
                     onClose={() => setShowHistory(false)}

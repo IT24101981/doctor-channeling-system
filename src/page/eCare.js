@@ -130,19 +130,19 @@ const ECare = () => {
                                     AI Powered
                                 </div>
                                 <h3>Smart Suggestions</h3>
-                                <p>Not sure which specialist to visit? Our AI analyzes your symptoms and medical history to recommend the perfect doctor for you.</p>
+                                <p>Not sure which specialist to visit? Simply enter up to 5 symptoms, and our AI will predict your probable condition to recommend the exact specialist you need.</p>
                                 <div className="ai-card-features">
                                     <div className="ai-card-feature-item">
                                         <span className="material-symbols-outlined">check</span>
-                                        <span>Symptom-based matching</span>
+                                        <span>Analyze up to 5 symptoms</span>
                                     </div>
                                     <div className="ai-card-feature-item">
                                         <span className="material-symbols-outlined">check</span>
-                                        <span>Personalized recommendations</span>
+                                        <span>Predict probable disease</span>
                                     </div>
                                     <div className="ai-card-feature-item">
                                         <span className="material-symbols-outlined">check</span>
-                                        <span>Smart scheduling optimization</span>
+                                        <span>Suggest exact medical specialist</span>
                                     </div>
                                 </div>
                                 <span className="ai-card-disclaimer">
@@ -168,19 +168,19 @@ const ECare = () => {
                                     Report Analysis
                                 </div>
                                 <h3>AI Report Explainer</h3>
-                                <p>Upload your lab reports and get instant AI-powered summaries in simple language. Understand your health metrics, normal ranges, and what needs attention.</p>
+                                <p>Upload your medical reports (Images or PDFs) and let our AI extract the text and explain complex medical terms in your preferred language.</p>
                                 <div className="ai-card-features">
                                     <div className="ai-card-feature-item">
                                         <span className="material-symbols-outlined">check</span>
-                                        <span>Plain language summaries</span>
+                                        <span>Extract text from reports via OCR</span>
                                     </div>
                                     <div className="ai-card-feature-item">
                                         <span className="material-symbols-outlined">check</span>
-                                        <span>Highlight critical values</span>
+                                        <span>Simplify complex medical terms</span>
                                     </div>
                                     <div className="ai-card-feature-item">
                                         <span className="material-symbols-outlined">check</span>
-                                        <span>Track health trends over time</span>
+                                        <span>Explain in English, Sinhala, or Tamil</span>
                                     </div>
                                 </div>
                                 <button className="ai-card-btn" onClick={() => navigate('/ecare/report-explainer')}>
