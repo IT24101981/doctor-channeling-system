@@ -506,3 +506,40 @@ exports.changeAdminPassword = async (req, res) => {
         res.status(500).json({ message: 'Server error while changing password' });
     }
 };
+
+// ── Any staff: change own password ───────────────────────────────────────────
+exports.changeStaffPassword = async (req, res) => {
+    const { username, newPassword } = req.body;
+
+    try {
+        if (!username || !newPassword) {
+            return res.status(400).json({ message: 'Username and new password are required' });
+        }
+        if (String(newPassword).length < 6) {
+            return res.status(400).json({ message: 'Password must be at least 6 characters' });
+        }
+
+        // Find the staff member (any role)
+        const [rows] = await db.execute(
+            'SELECT id FROM staff WHERE username = ?',
+            [username]
+        );
+        if (rows.length === 0) {
+            return res.status(404).json({ message: 'Staff account not found' });
+        }
+
+        // Hash and persist
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+        await db.execute(
+            'UPDATE staff SET password_hash = ? WHERE username = ?',
+            [hashedPassword, username]
+        );
+
+        res.status(200).json({ message: 'Password changed successfully' });
+    } catch (error) {
+        console.error('changeStaffPassword error:', error);
+        res.status(500).json({ message: 'Server error while changing password' });
+    }
+};
