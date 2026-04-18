@@ -49,12 +49,10 @@ const HRCustomerSupport = () => {
         setTimeout(() => setNotification(null), 3000);
     }, []);
 
-   
-
     const fetchTickets = useCallback(async () => {
         setLoading(true);
         try {
-            const response = await fetch(`${API_URL}/api/support/tickets`);
+            const response = await fetch(`${API_URL}/api/support/tickets/all`);
             const data = await response.json();
             if (response.ok) {
                 setTickets(data.tickets || []);
@@ -129,9 +127,8 @@ const HRCustomerSupport = () => {
     const submitStatusUpdate = async () => {
         const { ticketId, action } = replyModal;
         
-        // Prevent replying if the ticket is already updated from 'Pending'
         const ticket = tickets.find(t => t.id === ticketId);
-        if (ticket && ticket.status !== 'Pending') {
+        if (ticket && ticket.status !== 'Pending' && ticket.status !== 'In Progress') {
             showNotification(`already ${ticket.status.toLowerCase()}`, 'error');
             setReplyModal({ show: false, ticketId: null, action: null });
             return;
@@ -170,19 +167,11 @@ const HRCustomerSupport = () => {
     };
 
     const handleUpdateStatus = (ticketId, newStatus) => {
-        const ticket = tickets.find(t => t.id === ticketId);
-        if (ticket && ticket.status !== 'Pending') {
-            showNotification(`already ${ticket.status.toLowerCase()}`, 'error');
-            return;
-        }
-
         setReplyModal({ show: true, ticketId, action: newStatus });
         setReplyText('');
     };
 
     const formatDate = (dateString) => formatMediumDateLK(dateString);
-
-
 
     return (
         <div className="cs-page">
