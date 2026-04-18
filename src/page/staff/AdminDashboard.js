@@ -48,6 +48,119 @@ const AdminDashboard = () => {
 
     const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
+    // ── Password generator ───────────────────────────────────────────────────
+    const generatePassword = () => {
+        const upper = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+        const lower = 'abcdefghjkmnpqrstuvwxyz';
+        const nums  = '23456789';
+        const all   = upper + lower + nums;
+        // Guarantee at least one of each character class
+        let pwd = [
+            upper[Math.floor(Math.random() * upper.length)],
+            upper[Math.floor(Math.random() * upper.length)],
+            lower[Math.floor(Math.random() * lower.length)],
+            lower[Math.floor(Math.random() * lower.length)],
+            nums [Math.floor(Math.random() * nums.length)],
+            nums [Math.floor(Math.random() * nums.length)],
+        ];
+        // Fill remaining characters
+        for (let i = pwd.length; i < 10; i++) {
+            pwd.push(all[Math.floor(Math.random() * all.length)]);
+        }
+        // Shuffle
+        for (let i = pwd.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [pwd[i], pwd[j]] = [pwd[j], pwd[i]];
+        }
+        return pwd.join('');
+    };
+
+    const [copiedPassword, setCopiedPassword] = useState(false);
+    const [resetNewPassword, setResetNewPassword] = useState(''); // shown after reset
+
+    // Change Password Modal State
+    const [showModal, setShowModal] = useState(false);
+    const [newPassword, setNewPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
+    const [errors, setErrors] = useState({});
+    const [showNewPassword, setShowNewPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+    const handleChangePasswordSave = async () => {
+        // Client-side validation first
+        const newErrors = {};
+        if (newPassword.length < 6) {
+            newErrors.newPassword = "Password must be at least 6 characters";
+        }
+        if (newPassword !== confirmPassword) {
+            newErrors.confirmPassword = "Passwords do not match";
+        }
+        if (Object.keys(newErrors).length > 0) {
+            setErrors(newErrors);
+            return;
+        }
+        setErrors({});
+
+        try {
+            // Read the logged-in admin's username from localStorage
+            const storedUser = JSON.parse(localStorage.getItem('staffUser') || '{}');
+            const username = storedUser.username;
+
+            if (!username) {
+                alert('Session expired. Please log in again.');
+                return;
+            }
+
+            await axios.put(`${API_URL}/api/auth/admin/change-password`, {
+                username,
+                newPassword
+            });
+
+            handleModalClose();
+            alert("Password changed successfully! Please use your new password next time you log in.");
+        } catch (error) {
+            console.error('Change password error:', error);
+            const msg = error.response?.data?.message || 'Failed to change password. Please try again.';
+            setErrors({ newPassword: msg });
+        }
+    };
+
+    const handleModalClose = () => {
+        setShowModal(false);
+        setNewPassword("");
+        setConfirmPassword("");
+        setErrors({});
+        setShowNewPassword(false);
+        setShowConfirmPassword(false);
+    };
+
+    const handleCopyPassword = () => {
+        if (!staffFormData.password) return;
+        navigator.clipboard.writeText(staffFormData.password).then(() => {
+            setCopiedPassword(true);
+            setTimeout(() => setCopiedPassword(false), 2000);
+        });
+    };
+
+    const handleGeneratePassword = () => {
+        const pwd = generatePassword();
+        setStaffFormData(prev => ({ ...prev, password: pwd }));
+        if (formErrors.password) setFormErrors(prev => ({ ...prev, password: false }));
+    };
+
+    const handleResetPassword = async () => {
+        if (!editingStaffId) return;
+        if (!window.confirm("Reset this staff member's password? A new password will be generated.")) return;
+        try {
+            const response = await axios.put(`${API_URL}/api/admin/staff/${editingStaffId}/reset-password`);
+            const { newPassword } = response.data;
+            setResetNewPassword(newPassword);   // show in UI
+        } catch (error) {
+            console.error('Error resetting password:', error);
+            alert(error.response?.data?.message || 'Failed to reset password. Please try again.');
+        }
+    };
+
     // Fetch staff from backend
     const fetchStaff = useCallback(async () => {
         setIsLoadingStaff(true);
@@ -176,6 +289,10 @@ const AdminDashboard = () => {
     const handleCategoryClick = (category) => {
         setSelectedCategory(category);
         setExpandedId(null);
+        // Auto-generate a password when opening the Add Staff form
+        if (category === 'staff') {
+            setStaffFormData(prev => ({ ...prev, password: generatePassword() }));
+        }
     };
 
     const handleToggleInfo = (id) => {
@@ -183,17 +300,6 @@ const AdminDashboard = () => {
     };
 
     const handleDeleteRecord = async (id) => {
-        if (selectedCategory === 'user') {
-            try {
-                const response = await axios.delete(`${API_URL}/api/admin/users/${id}`);
-                alert(response.data.message || "User Deleted Successfully");
-                fetchUsers(); // Refresh list from DB
-            } catch (error) {
-                console.error('Error deleting user:', error);
-                alert(error.response?.data?.message || "Failed to delete user");
-            }
-            return;
-        }
         if (selectedCategory === 'staff') {
             try {
                 const response = await axios.delete(`${API_URL}/api/admin/staff/${id}`);
@@ -279,7 +385,7 @@ const AdminDashboard = () => {
                 alert(response.data.message || "Staff Added Successfully");
             }
 
-            setStaffFormData(initialStaffForm);
+            setStaffFormData({ ...initialStaffForm, password: generatePassword() });
             setFormErrors({});
             setShowStaffPassword(false);
             fetchStaff(); // Refresh list from DB
@@ -317,9 +423,11 @@ const AdminDashboard = () => {
                     onClick={() => {
                         setSelectedCategory(null);
                         setEditingStaffId(null);
-                        setStaffFormData({ name: '', email: '', phone: '', role: '', password: '' });
+                        setStaffFormData(initialStaffForm);
                         setFormErrors({});
                         setShowStaffPassword(false);
+                        setCopiedPassword(false);
+                        setResetNewPassword('');
                     }}
                     style={{
                         padding: '0.6rem 1.2rem',
@@ -354,26 +462,102 @@ const AdminDashboard = () => {
                                     {formErrors.phone && <p style={{ color: '#ef4444', fontSize: '12px', margin: '0 0 8px 4px' }}>{formErrors.phone}</p>}
                                 </div>
                                 <div style={{ display: 'flex', flexDirection: 'column', marginBottom: '12px' }}>
+                                    {/* Password input row */}
                                     <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
                                         <input
-                                            type={showStaffPassword ? "text" : "password"}
+                                            type={editingStaffId ? 'password' : (showStaffPassword ? 'text' : 'password')}
                                             name="password"
-                                            placeholder="Password"
+                                            placeholder={editingStaffId ? '' : 'Password'}
                                             autoComplete="new-password"
-                                            value={staffFormData.password}
-                                            onChange={handleStaffFormChange}
-                                            style={{ width: '100%', padding: '12px 15px', borderRadius: '8px', border: formErrors.password ? '1px solid #ef4444' : '1px solid #d1d5db', outline: 'none', transition: '0.3s ease', paddingRight: '4rem' }}
-                                            onFocus={(e) => e.target.style.borderColor = '#1E3A5F'} onBlur={(e) => e.target.style.borderColor = formErrors.password ? '#ef4444' : '#d1d5db'}
+                                            value={editingStaffId ? '••••••••' : staffFormData.password}
+                                            onChange={editingStaffId ? undefined : handleStaffFormChange}
+                                            disabled={!!editingStaffId}
+                                            readOnly={!!editingStaffId}
+                                            style={{
+                                                width: '100%',
+                                                padding: '12px 15px',
+                                                borderRadius: '8px',
+                                                border: formErrors.password ? '1px solid #ef4444' : '1px solid #d1d5db',
+                                                outline: 'none',
+                                                transition: '0.3s ease',
+                                                paddingRight: editingStaffId ? '15px' : '4.5rem',
+                                                fontFamily: 'monospace',
+                                                letterSpacing: '0.18em',
+                                                backgroundColor: editingStaffId ? '#f3f4f6' : 'white',
+                                                cursor: editingStaffId ? 'not-allowed' : 'text',
+                                                color: editingStaffId ? '#9ca3af' : 'inherit',
+                                            }}
+                                            onFocus={editingStaffId ? undefined : (e) => e.target.style.borderColor = '#1E3A5F'}
+                                            onBlur={editingStaffId ? undefined : (e) => e.target.style.borderColor = formErrors.password ? '#ef4444' : '#d1d5db'}
                                         />
-                                        <button
-                                            type="button"
-                                            onClick={() => setShowStaffPassword(!showStaffPassword)}
-                                            style={{ position: 'absolute', right: '10px', background: 'none', border: 'none', color: '#1E3A5F', fontSize: '0.9rem', cursor: 'pointer', fontWeight: 'bold' }}
-                                        >
-                                            {showStaffPassword ? 'Hide' : 'Show'}
-                                        </button>
+                                        {/* Show/Hide toggle — only in Add mode */}
+                                        {!editingStaffId && (
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowStaffPassword(!showStaffPassword)}
+                                                style={{ position: 'absolute', right: '10px', background: 'none', border: 'none', color: '#1E3A5F', fontSize: '0.82rem', cursor: 'pointer', fontWeight: '700', whiteSpace: 'nowrap' }}
+                                            >
+                                                {showStaffPassword ? 'Hide' : 'Show'}
+                                            </button>
+                                        )}
                                     </div>
-                                    {formErrors.password && <p style={{ color: '#ef4444', fontSize: '12px', margin: '4px 0 0 4px' }}>{formErrors.password}</p>}
+                                    {/* Generate & Copy row — Add mode only */}
+                                    {!editingStaffId && (
+                                        <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
+                                            <button
+                                                type="button"
+                                                onClick={handleGeneratePassword}
+                                                style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '8px 12px', borderRadius: '8px', border: '1.5px solid #1E3A5F', backgroundColor: '#f0f6ff', color: '#1E3A5F', fontSize: '0.85rem', fontWeight: '700', cursor: 'pointer', transition: 'all 0.2s ease' }}
+                                                onMouseOver={(e) => { e.currentTarget.style.backgroundColor = '#1e3a5fff'; e.currentTarget.style.color = 'white'; }}
+                                                onMouseOut={(e) => { e.currentTarget.style.backgroundColor = '#f0f6ff'; e.currentTarget.style.color = '#1E3A5F'; }}
+                                            >
+                                                🔄 Generate
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={handleCopyPassword}
+                                                style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '8px 12px', borderRadius: '8px', border: copiedPassword ? '1.5px solid #16a34a' : '1.5px solid #6b7280', backgroundColor: copiedPassword ? '#f0fdf4' : '#f9fafb', color: copiedPassword ? '#16a34a' : '#6b7280', fontSize: '0.85rem', fontWeight: '700', cursor: 'pointer', transition: 'all 0.2s ease' }}
+                                                onMouseOver={(e) => { if (!copiedPassword) { e.currentTarget.style.backgroundColor = '#f3f4f6'; e.currentTarget.style.borderColor = '#374151'; e.currentTarget.style.color = '#374151'; } }}
+                                                onMouseOut={(e) => { if (!copiedPassword) { e.currentTarget.style.backgroundColor = '#f9fafb'; e.currentTarget.style.borderColor = '#6b7280'; e.currentTarget.style.color = '#6b7280'; } }}
+                                            >
+                                                {copiedPassword ? '✅ Copied!' : '📋 Copy'}
+                                            </button>
+                                        </div>
+                                    )}
+                                    {/* Reset Password button + reveal box — Edit mode only */}
+                                    {editingStaffId && (
+                                        <>
+                                            <button
+                                                type="button"
+                                                onClick={handleResetPassword}
+                                                style={{ marginTop: '8px', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '10px 12px', borderRadius: '8px', border: 'none', backgroundColor: '#1e3a5fff', color: 'white', fontSize: '0.88rem', fontWeight: '700', cursor: 'pointer', transition: 'all 0.2s ease', boxShadow: '0 2px 6px rgba(14,165,233,0.3)' }}
+                                                onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#335683ff'}
+                                                onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#1e3a5fff'}
+                                            >
+                                                🔑 Reset Password
+                                            </button>
+                                            {resetNewPassword && (
+                                                <div style={{ marginTop: '10px', padding: '12px 14px', borderRadius: '8px', backgroundColor: '#f0fdf4', border: '1.5px solid #86efac', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
+                                                    <div>
+                                                        <p style={{ margin: '0 0 2px 0', fontSize: '11px', fontWeight: '700', color: '#15803d', textTransform: 'uppercase', letterSpacing: '0.05em' }}>New Password</p>
+                                                        <span style={{ fontFamily: 'monospace', fontSize: '1.05rem', fontWeight: '700', color: '#166534', letterSpacing: '0.15em' }}>{resetNewPassword}</span>
+                                                    </div>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            navigator.clipboard.writeText(resetNewPassword);
+                                                            setCopiedPassword(true);
+                                                            setTimeout(() => setCopiedPassword(false), 2000);
+                                                        }}
+                                                        style={{ flexShrink: 0, padding: '6px 12px', borderRadius: '6px', border: copiedPassword ? '1.5px solid #16a34a' : '1.5px solid #86efac', backgroundColor: copiedPassword ? '#dcfce7' : 'white', color: copiedPassword ? '#16a34a' : '#15803d', fontSize: '0.8rem', fontWeight: '700', cursor: 'pointer', transition: 'all 0.2s ease', whiteSpace: 'nowrap' }}
+                                                    >
+                                                        {copiedPassword ? '✅ Copied!' : '📋 Copy'}
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </>
+                                    )}
+                                    {formErrors.password && <p style={{ color: '#ef4444', fontSize: '12px', margin: '6px 0 0 4px' }}>{formErrors.password}</p>}
                                 </div>
                                 <div style={{ display: 'flex', flexDirection: 'column', marginBottom: '12px' }}>
                                     <select
@@ -433,7 +617,7 @@ const AdminDashboard = () => {
                                         {editingStaffId ? 'Update Staff' : 'Add Staff'}
                                     </button>
                                     {editingStaffId && (
-                                        <button type="button" onClick={() => { setEditingStaffId(null); setStaffFormData({ name: '', email: '', phone: '', role: '', password: '' }); setFormErrors({}); setShowStaffPassword(false); }} style={{ backgroundColor: '#6b7280', color: 'white', border: 'none', padding: '12px 24px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', transition: '0.3s ease' }} onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#4b5563'} onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#6b7280'}>
+                                        <button type="button" onClick={() => { setEditingStaffId(null); setStaffFormData({ ...initialStaffForm, password: generatePassword() }); setFormErrors({}); setShowStaffPassword(false); setCopiedPassword(false); setResetNewPassword(''); }} style={{ backgroundColor: '#6b7280', color: 'white', border: 'none', padding: '12px 24px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', transition: '0.3s ease' }} onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#4b5563'} onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#6b7280'}>
                                             Cancel
                                         </button>
                                     )}
@@ -484,7 +668,6 @@ const AdminDashboard = () => {
                                             <th style={{ padding: '16px 20px', color: '#4b5563', fontWeight: '600' }}>Email</th>
                                             <th style={{ padding: '16px 20px', color: '#4b5563', fontWeight: '600' }}>Phone</th>
                                             <th style={{ padding: '16px 20px', color: '#4b5563', fontWeight: '600' }}>NIC</th>
-                                            <th style={{ padding: '16px 20px', color: '#4b5563', fontWeight: '600', textAlign: 'center' }}>Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -494,9 +677,6 @@ const AdminDashboard = () => {
                                                 <td style={{ padding: '16px 20px', color: '#6b7280' }}>{item.email}</td>
                                                 <td style={{ padding: '16px 20px', color: '#6b7280' }}>{item.phone}</td>
                                                 <td style={{ padding: '16px 20px', color: '#6b7280' }}>{item.nic}</td>
-                                                <td style={{ padding: '16px 20px', display: 'flex', gap: '8px', justifyContent: 'center' }}>
-                                                    <button onClick={() => handleDeleteRecord(item.id)} style={{ backgroundColor: '#ef4444', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', transition: '0.3s', fontWeight: '500', boxShadow: '0 2px 4px rgba(239, 68, 68, 0.2)' }} onMouseOver={(e) => { e.currentTarget.style.backgroundColor = '#dc2626'; e.currentTarget.style.transform = 'translateY(-1px)' }} onMouseOut={(e) => { e.currentTarget.style.backgroundColor = '#ef4444'; e.currentTarget.style.transform = 'translateY(0)' }}>Delete</button>
-                                                </td>
                                             </tr>
                                         ))}
                                     </tbody>
@@ -574,6 +754,29 @@ const AdminDashboard = () => {
                         <span className="material-symbols-outlined">admin_panel_settings</span>
                         <span>Role: <strong>Admin</strong></span>
                     </div>
+
+                    <button
+                        onClick={() => setShowModal(true)}
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            backgroundColor: '#1E3A5F',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '8px',
+                            padding: '8px 14px',
+                            cursor: 'pointer',
+                            fontWeight: '600',
+                            fontSize: '0.9rem',
+                            transition: 'background-color 0.2s ease'
+                        }}
+                        onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#162E4A'}
+                        onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#1E3A5F'}
+                    >
+                        <span className="material-symbols-outlined" style={{ fontSize: '1.1rem' }}>lock</span>
+                        Change Password
+                    </button>
 
                     <button
                         className="cashier-nav-btn btn-logout"
@@ -746,6 +949,157 @@ const AdminDashboard = () => {
                 <hr style={{ border: 'none', borderTop: '1px solid #e5e7eb', marginBottom: '1rem', width: '100%' }} />
                 <p style={{ color: '#6b7280', fontSize: '14px', margin: 0 }}>© 2026 Narammala Channeling Center. All rights reserved.</p>
             </footer>
+
+            {/* ── Change Password Modal ─────────────────────────────────── */}
+            {showModal && (
+                <div
+                    style={{
+                        position: 'fixed',
+                        inset: 0,
+                        backgroundColor: 'rgba(0,0,0,0.45)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        zIndex: 9999
+                    }}
+                    onClick={(e) => { if (e.target === e.currentTarget) handleModalClose(); }}
+                >
+                    <div
+                        style={{
+                            width: '320px',
+                            padding: '20px',
+                            backgroundColor: 'white',
+                            borderRadius: '12px',
+                            boxShadow: '0 8px 20px rgba(0,0,0,0.15)'
+                        }}
+                    >
+                        {/* Modal Title */}
+                        <h3 style={{ margin: '0 0 20px 0', color: '#1E3A5F', fontSize: '1.2rem', fontWeight: '700', textAlign: 'center' }}>
+                            Change Password
+                        </h3>
+
+                        {/* New Password */}
+                        <div style={{ marginBottom: '14px' }}>
+                            <div style={{ position: 'relative' }}>
+                                <input
+                                    type={showNewPassword ? 'text' : 'password'}
+                                    placeholder="New Password"
+                                    value={newPassword}
+                                    onChange={(e) => {
+                                        setNewPassword(e.target.value);
+                                        if (errors.newPassword) setErrors(prev => ({ ...prev, newPassword: undefined }));
+                                    }}
+                                    style={{
+                                        width: '100%',
+                                        padding: '10px 40px 10px 10px',
+                                        borderRadius: '8px',
+                                        border: errors.newPassword ? '1px solid #ef4444' : '1px solid #ccc',
+                                        outline: 'none',
+                                        fontSize: '0.95rem',
+                                        boxSizing: 'border-box',
+                                        transition: 'border-color 0.2s'
+                                    }}
+                                    onFocus={(e) => { if (!errors.newPassword) e.target.style.borderColor = '#1E3A5F'; }}
+                                    onBlur={(e) => { if (!errors.newPassword) e.target.style.borderColor = '#ccc'; }}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowNewPassword(v => !v)}
+                                    style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280', display: 'flex', alignItems: 'center', padding: 0 }}
+                                >
+                                    <span className="material-symbols-outlined" style={{ fontSize: '1.1rem' }}>
+                                        {showNewPassword ? 'visibility_off' : 'visibility'}
+                                    </span>
+                                </button>
+                            </div>
+                            {errors.newPassword && (
+                                <p style={{ color: '#ef4444', fontSize: '12px', margin: '4px 0 0 2px' }}>{errors.newPassword}</p>
+                            )}
+                        </div>
+
+                        {/* Confirm Password */}
+                        <div style={{ marginBottom: '20px' }}>
+                            <div style={{ position: 'relative' }}>
+                                <input
+                                    type={showConfirmPassword ? 'text' : 'password'}
+                                    placeholder="Re-enter Password"
+                                    value={confirmPassword}
+                                    onChange={(e) => {
+                                        setConfirmPassword(e.target.value);
+                                        if (errors.confirmPassword) setErrors(prev => ({ ...prev, confirmPassword: undefined }));
+                                    }}
+                                    style={{
+                                        width: '100%',
+                                        padding: '10px 40px 10px 10px',
+                                        borderRadius: '8px',
+                                        border: errors.confirmPassword ? '1px solid #ef4444' : '1px solid #ccc',
+                                        outline: 'none',
+                                        fontSize: '0.95rem',
+                                        boxSizing: 'border-box',
+                                        transition: 'border-color 0.2s'
+                                    }}
+                                    onFocus={(e) => { if (!errors.confirmPassword) e.target.style.borderColor = '#1E3A5F'; }}
+                                    onBlur={(e) => { if (!errors.confirmPassword) e.target.style.borderColor = '#ccc'; }}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowConfirmPassword(v => !v)}
+                                    style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280', display: 'flex', alignItems: 'center', padding: 0 }}
+                                >
+                                    <span className="material-symbols-outlined" style={{ fontSize: '1.1rem' }}>
+                                        {showConfirmPassword ? 'visibility_off' : 'visibility'}
+                                    </span>
+                                </button>
+                            </div>
+                            {errors.confirmPassword && (
+                                <p style={{ color: '#ef4444', fontSize: '12px', margin: '4px 0 0 2px' }}>{errors.confirmPassword}</p>
+                            )}
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div style={{ display: 'flex', gap: '10px' }}>
+                            <button
+                                onClick={handleChangePasswordSave}
+                                style={{
+                                    flex: 1,
+                                    backgroundColor: '#1E3A5F',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '8px',
+                                    padding: '10px',
+                                    cursor: 'pointer',
+                                    fontWeight: '600',
+                                    fontSize: '0.95rem',
+                                    transition: 'background-color 0.2s ease'
+                                }}
+                                onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#162E4A'}
+                                onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#1E3A5F'}
+                            >
+                                Save
+                            </button>
+                            <button
+                                onClick={handleModalClose}
+                                style={{
+                                    flex: 1,
+                                    backgroundColor: '#e5e7eb',
+                                    color: '#374151',
+                                    border: 'none',
+                                    borderRadius: '8px',
+                                    padding: '10px',
+                                    cursor: 'pointer',
+                                    fontWeight: '600',
+                                    fontSize: '0.95rem',
+                                    transition: 'background-color 0.2s ease'
+                                }}
+                                onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#d1d5db'}
+                                onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#e5e7eb'}
+                            >
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

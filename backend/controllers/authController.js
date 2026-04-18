@@ -469,3 +469,40 @@ exports.forgotPasswordReset = async (req, res) => {
         res.status(500).json({ message: 'Server error' });
     }
 };
+
+// ── Admin: change own password ────────────────────────────────────────────────
+exports.changeAdminPassword = async (req, res) => {
+    const { username, newPassword } = req.body;
+
+    try {
+        if (!username || !newPassword) {
+            return res.status(400).json({ message: 'Username and new password are required' });
+        }
+        if (String(newPassword).length < 6) {
+            return res.status(400).json({ message: 'Password must be at least 6 characters' });
+        }
+
+        // Verify the admin exists in the staff table
+        const [rows] = await db.execute(
+            'SELECT id FROM staff WHERE username = ? AND role = ?',
+            [username, 'Admin']
+        );
+        if (rows.length === 0) {
+            return res.status(404).json({ message: 'Admin account not found' });
+        }
+
+        // Hash and persist
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+        await db.execute(
+            'UPDATE staff SET password_hash = ? WHERE username = ? AND role = ?',
+            [hashedPassword, username, 'Admin']
+        );
+
+        res.status(200).json({ message: 'Password changed successfully' });
+    } catch (error) {
+        console.error('changeAdminPassword error:', error);
+        res.status(500).json({ message: 'Server error while changing password' });
+    }
+};
