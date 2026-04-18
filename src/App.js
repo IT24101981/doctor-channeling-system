@@ -44,16 +44,19 @@ function App() {
           <Route path="/signup" element={<Signup />} />
           <Route path="/ecare/doc-signup" element={<DoctorSignup />} />
           <Route path="/ecare/staff-login" element={<StaffLogin />} />
+          
+          {/* Protected Staff Routes */}
           <Route path="/ecare/staff/admin" element={<StaffProtectedRoute element={<AdminDashboard />} allowedRoles={['Admin']} />} />
           <Route path="/ecare/staff/cashier" element={<StaffProtectedRoute element={<CashierDashboard />} allowedRoles={['Cashier']} />} />
           <Route path="/ecare/staff/refunds" element={<StaffProtectedRoute element={<RefundPayment />} allowedRoles={['Cashier', 'Admin']} />} />
           <Route path="/ecare/staff/hr" element={<StaffProtectedRoute element={<HRDashboard />} allowedRoles={['HR']} />} />
+          <Route path="/ecare/staff/hr/customer-support" element={<StaffProtectedRoute element={<HRCustomerSupport />} allowedRoles={['HR', 'Admin']} />} />
           <Route path="/ecare/staff/booking" element={<StaffProtectedRoute element={<BookingManagerDashboard />} allowedRoles={['Booking Manager']} />} />
           <Route path="/schedules/create" element={<StaffProtectedRoute element={<CreateSchedule />} allowedRoles={['Booking Manager']} />} />
           <Route path="/schedules/manage" element={<StaffProtectedRoute element={<ManageSchedules />} allowedRoles={['Booking Manager']} />} />
+          
           <Route path="/appointments/new/:schedule_id/:doctor_id" element={<AppointmentForm />} />
           <Route path="/ecare/customer-support" element={<CustomerSupport />} />
-          <Route path="/ecare/staff/customer-support" element={<StaffProtectedRoute element={<HRCustomerSupport />} allowedRoles={['HR', 'Admin']} />} />
           <Route path="/ecare/payment" element={<PaymentPortal />} />
           <Route path="/ecare/payment/success" element={<SuccessPayment />} />
           <Route path="/ecare/payment/failed" element={<FailedPayment />} />
@@ -62,7 +65,6 @@ function App() {
           <Route path="/doctor-availability" element={<DoctorAvailability />} />
           <Route path="/doctorprofile" element={<DoctorProfile />} />
           <Route path="/ecare/doctors" element={<DoctorSearchResults />} />
-          <Route path="/ecare/staff/HRCustomerSupport" element={<StaffProtectedRoute element={<HRCustomerSupport />} allowedRoles={['HR', 'Admin']} />} />
           <Route path="/doctorpending" element={<DoctorPending />} />
           <Route path="/doctorreject" element={<DoctorReject />} />
         </Routes>

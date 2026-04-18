@@ -298,7 +298,15 @@ const ECare = () => {
             )}
 
             {/* Sticky Support Button */}
-            <div className="ecare-support-btn" title="Contact Support" onClick={() => navigate('/ecare/customer-support')}>
+            <div className="ecare-support-btn" title="Contact Support" onClick={() => {
+                const storedUser = localStorage.getItem('user');
+                if (!storedUser) {
+                    alert('Please login or register to access Customer Support.');
+                    navigate('/login');
+                } else {
+                    navigate('/ecare/customer-support');
+                }
+            }}>
                 <span className="material-symbols-outlined">support_agent</span>
                 {hasSupportUpdates && (
                     <span 

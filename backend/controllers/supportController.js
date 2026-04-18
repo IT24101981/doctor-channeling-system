@@ -33,7 +33,10 @@ exports.getTicketsByPatient = async (req, res) => {
 
     try {
         const [tickets] = await db.execute(
-            'SELECT * FROM support_tickets WHERE patient_id = ? AND is_deleted = 0 ORDER BY created_at DESC',
+            `SELECT id, patient_id, patient_name, patient_email, subject, description, status, hr_reply, attachment_path, created_at, updated_at 
+             FROM support_tickets 
+             WHERE patient_id = ? AND is_deleted = 0 
+             ORDER BY created_at DESC`,
             [patientId]
         );
 
@@ -44,19 +47,27 @@ exports.getTicketsByPatient = async (req, res) => {
     }
 };
 
-// Patient: Delete a ticket (permanent delete)
+// Patient: Soft delete a ticket
 exports.deleteTicket = async (req, res) => {
-    const { id } = req.params;
+    const { ticketId } = req.params;
+    const { patientId } = req.body;
 
     try {
-        const [result] = await db.execute(
-            'DELETE FROM support_tickets WHERE id = ?',
-            [id]
+        // Verify the ticket belongs to this patient
+        const [tickets] = await db.execute(
+            'SELECT * FROM support_tickets WHERE id = ? AND patient_id = ?',
+            [ticketId, patientId]
         );
 
-        if (result.affectedRows === 0) {
+        if (tickets.length === 0) {
             return res.status(404).json({ message: 'Ticket not found' });
         }
+
+        // Soft delete
+        await db.execute(
+            'UPDATE support_tickets SET is_deleted = 1 WHERE id = ?',
+            [ticketId]
+        );
 
         res.status(200).json({ message: 'Ticket deleted successfully' });
     } catch (error) {
@@ -69,7 +80,13 @@ exports.deleteTicket = async (req, res) => {
 exports.getAllTickets = async (req, res) => {
     try {
         const [tickets] = await db.execute(
-            'SELECT * FROM support_tickets WHERE is_deleted = 0 ORDER BY created_at DESC'
+            `SELECT st.id, st.patient_id, st.patient_name, st.patient_email, st.subject, st.description, st.status, 
+                    st.hr_reply, st.attachment_path, st.created_at, st.updated_at,
+                    p.first_name, p.second_name, p.phone AS patient_phone
+             FROM support_tickets st
+             LEFT JOIN patients p ON st.patient_id = p.id
+             WHERE st.is_deleted = 0
+             ORDER BY st.created_at DESC`
         );
 
         res.status(200).json({ tickets });
@@ -85,7 +102,7 @@ exports.updateTicketStatus = async (req, res) => {
     const { status, hr_reply } = req.body;
 
     try {
-        if (!status || !['Pending', 'Resolved', 'Rejected', 'Approved'].includes(status)) {
+        if (!status || !['Pending', 'Resolved', 'Rejected', 'In Progress'].includes(status)) {
             return res.status(400).json({ message: 'Invalid status' });
         }
 

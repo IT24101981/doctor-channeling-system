@@ -32,12 +32,13 @@ const upload = multer({
 // Patient routes
 router.post('/tickets', upload.single('attachment'), supportController.createTicket);
 router.get('/tickets/patient/:patientId', supportController.getTicketsByPatient);
-router.delete('/tickets/:id', supportController.deleteTicket);
+router.delete('/tickets/:ticketId', supportController.deleteTicket);
 router.get('/tickets/patient/:patientId/updates', supportController.checkUnseenUpdates);
 router.put('/tickets/patient/:patientId/seen', supportController.markTicketsAsSeen);
 
 // HR Staff routes
-router.get('/tickets', supportController.getAllTickets);
+router.get('/tickets/all', supportController.getAllTickets);
+router.get('/tickets', supportController.getAllTickets); // Compatibility alias
 router.put('/tickets/:id/status', supportController.updateTicketStatus);
 router.put('/tickets/:id/soft-delete', supportController.softDeleteTicket);
 

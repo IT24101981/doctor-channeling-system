@@ -96,3 +96,54 @@ exports.deleteStaff = async (req, res) => {
         res.status(500).json({ message: 'Server error while deleting staff' });
     }
 };
+
+// Reset staff password — generates a new random password, hashes it, and saves it
+exports.resetStaffPassword = async (req, res) => {
+    const id = req.params.id;
+
+    try {
+        // Verify the staff member exists
+        const [staff] = await db.execute('SELECT id FROM staff WHERE id = ?', [id]);
+        if (staff.length === 0) {
+            return res.status(404).json({ message: 'Staff member not found' });
+        }
+
+        // Generate a secure random password (10 chars, upper + lower + digits)
+        const upper = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+        const lower = 'abcdefghjkmnpqrstuvwxyz';
+        const nums  = '23456789';
+        const all   = upper + lower + nums;
+
+        let pwdChars = [
+            upper[Math.floor(Math.random() * upper.length)],
+            upper[Math.floor(Math.random() * upper.length)],
+            lower[Math.floor(Math.random() * lower.length)],
+            lower[Math.floor(Math.random() * lower.length)],
+            nums[Math.floor(Math.random()  * nums.length)],
+            nums[Math.floor(Math.random()  * nums.length)],
+        ];
+        for (let i = pwdChars.length; i < 10; i++) {
+            pwdChars.push(all[Math.floor(Math.random() * all.length)]);
+        }
+        // Shuffle
+        for (let i = pwdChars.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [pwdChars[i], pwdChars[j]] = [pwdChars[j], pwdChars[i]];
+        }
+        const newPassword = pwdChars.join('');
+
+        // Hash and persist
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+        await db.execute('UPDATE staff SET password_hash = ? WHERE id = ?', [hashedPassword, id]);
+
+        res.status(200).json({
+            message: 'Password reset successful',
+            newPassword: newPassword
+        });
+    } catch (error) {
+        console.error('Error resetting staff password:', error);
+        res.status(500).json({ message: 'Server error while resetting password' });
+    }
+};
