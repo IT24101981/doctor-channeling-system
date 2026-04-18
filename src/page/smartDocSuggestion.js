@@ -1,93 +1,109 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ECareNavBar from '../Components/eCareNavBar';
 import './css/smartDocSuggestion.css';
-
-const SYMPTOM_QUESTIONS = [
-    { id: 'headache', label: 'Do you have a headache or migraine?', icon: '🧠' },
-    { id: 'chest_pain', label: 'Do you experience chest pain or discomfort?', icon: '❤️' },
-    { id: 'cough', label: 'Do you have a persistent cough or breathing difficulty?', icon: '🫁' },
-    { id: 'stomach', label: 'Do you have stomach pain, nausea, or vomiting?', icon: '🤢' },
-    { id: 'skin', label: 'Do you have skin rashes, itching, or irritation?', icon: '🩹' },
-    { id: 'joint', label: 'Do you have joint pain or body aches?', icon: '🦴' },
-    { id: 'fever', label: 'Do you have a fever or chills?', icon: '🌡️' },
-    { id: 'fatigue', label: 'Do you feel excessive tiredness or fatigue?', icon: '😴' },
-    { id: 'vision', label: 'Do you have blurry vision or eye problems?', icon: '👁️' },
-    { id: 'anxiety', label: 'Do you experience anxiety, stress, or depression?', icon: '🧘' },
-];
+import symptomsData from '../data/symptoms.json';
+import gsap from 'gsap';
+import { Search, X, Loader2, User, Stethoscope, CheckCircle2, AlertCircle } from 'lucide-react';
 
 const SmartDocSuggestion = () => {
     const navigate = useNavigate();
-    const [age, setAge] = useState('');
-    const [gender, setGender] = useState('');
-    const [answers, setAnswers] = useState({});
-    const [step, setStep] = useState(1); // 1: info, 2: symptoms, 3: results
+    const heroRef = useRef(null);
+    const contentRef = useRef(null);
+
+    const [selectedSymptoms, setSelectedSymptoms] = useState([]);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [step, setStep] = useState(2); // Start from symptoms: 2: symptoms, 3: results
     const [isLoading, setIsLoading] = useState(false);
     const [results, setResults] = useState(null);
 
-    const handleAnswer = (symptomId, value) => {
-        setAnswers(prev => ({ ...prev, [symptomId]: value }));
+    // Filter available symptoms based on search
+    const filteredSymptoms = symptomsData.filter(s => 
+        s.toLowerCase().includes(searchTerm.toLowerCase()) && 
+        !selectedSymptoms.includes(s)
+    );
+
+    useEffect(() => {
+        // Hero animation
+        gsap.fromTo(heroRef.current, 
+            { opacity: 0, y: -20 }, 
+            { opacity: 1, y: 0, duration: 0.8, ease: "power3.out" }
+        );
+    }, []);
+
+    useEffect(() => {
+        // Content animation on step change
+        gsap.fromTo(contentRef.current, 
+            { opacity: 0, scale: 0.95 }, 
+            { opacity: 1, scale: 1, duration: 0.5, ease: "back.out(1.7)" }
+        );
+    }, [step]);
+
+    const toggleSymptom = (symptom) => {
+        if (selectedSymptoms.includes(symptom)) {
+            setSelectedSymptoms(prev => prev.filter(s => s !== symptom));
+        } else {
+            setSelectedSymptoms(prev => [...prev, symptom]);
+        }
     };
 
-    const allAnswered = Object.keys(answers).length === SYMPTOM_QUESTIONS.length;
-
-    const handleSubmitInfo = () => {
-        if (!age || !gender) return;
-        setStep(2);
-    };
 
     const handleSubmitSymptoms = async () => {
-        if (!allAnswered) return;
+        if (selectedSymptoms.length === 0) return;
         setIsLoading(true);
 
         try {
-            // Get selected symptoms
-            const selectedSymptoms = SYMPTOM_QUESTIONS
-                .filter(q => answers[q.id] === 'yes')
-                .map(q => q.label.replace(/Do you have |Do you experience |Do you feel /g, '').replace('?', ''));
-
-            // Call doctor suggestion API
-            const specialization = detectSpecialization(selectedSymptoms);
-            const response = await fetch(`http://localhost:8000/api/suggest-doctor?specialization=${specialization}`);
-            const data = await response.json();
-
-            setResults({
-                symptoms: selectedSymptoms,
-                specialization: specialization,
-                doctors: data.doctors || [],
-                age: age,
-                gender: gender
+            // Prepare a complete feature vector with ALL 334 symptoms
+            // In the exact order specified in symptoms.json
+            const featureVector = {};
+            symptomsData.forEach(symptomName => {
+                if (symptomName === 'symptom_count') {
+                    featureVector[symptomName] = selectedSymptoms.length;
+                } else {
+                    featureVector[symptomName] = selectedSymptoms.includes(symptomName) ? 1 : 0;
+                }
             });
-            setStep(3);
+
+            // If the backend was trained with an extra 'symptom_count' column, add it
+            // Based on inspection, there were 334 features in the scaler.
+            // If the model throws an error, we can adjust.
+            
+            // 1. Get AI Disease Prediction
+            const predictResponse = await fetch(`http://localhost:8000/api/predict`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(featureVector)
+            });
+            const predictData = await predictResponse.json();
+
+            if (predictData.success) {
+                // 2. Search for doctors by the recommended specialist
+                const doctorResponse = await fetch(`http://localhost:8000/api/suggest-doctor?specialization=${predictData.suggested_specialist}`);
+                const doctorData = await doctorResponse.json();
+
+                setResults({
+                    symptoms: selectedSymptoms,
+                    prediction: predictData.prediction,
+                    specialization: predictData.suggested_specialist,
+                    doctors: doctorData.doctors || [],
+                    confidence: predictData.confidence
+                });
+                setStep(3);
+            } else {
+                alert('AI Prediction Failed: ' + predictData.error);
+            }
         } catch (error) {
             console.error('Error:', error);
-            alert('Cant connect to server.');
+            alert('Could not connect to AI services.');
+        } finally {
+            setIsLoading(false);
         }
-        setIsLoading(false);
-    };
-
-    const detectSpecialization = (symptoms) => {
-        const text = symptoms.join(' ').toLowerCase();
-        if (text.includes('headache') || text.includes('migraine')) return 'Neurology';
-        if (text.includes('chest') || text.includes('heart')) return 'Cardiology';
-        if (text.includes('cough') || text.includes('breathing')) return 'Pulmonology';
-        if (text.includes('stomach') || text.includes('nausea') || text.includes('vomiting')) return 'Gastroenterology';
-        if (text.includes('skin') || text.includes('rash') || text.includes('itching')) return 'Dermatology';
-        if (text.includes('joint') || text.includes('body ache')) return 'Orthopedics';
-        if (text.includes('vision') || text.includes('eye')) return 'Ophthalmology';
-        if (text.includes('anxiety') || text.includes('stress') || text.includes('depression')) return 'Psychiatry';
-        if (text.includes('fatigue') || text.includes('tiredness')) return 'Endocrinology';
-        if (text.includes('fever')) return 'General';
-        return 'General';
     };
 
     const handleReset = () => {
-        setAge('');
-        setGender('');
-        setAnswers({});
-        setStep(1);
+        setSelectedSymptoms([]);
+        setStep(2);
         setResults(null);
-        setIsLoading(false);
     };
 
     return (
@@ -96,145 +112,126 @@ const SmartDocSuggestion = () => {
 
             <main className="sds-main">
                 {/* Hero */}
-                <section className="sds-hero">
+                <section className="sds-hero" ref={heroRef}>
                     <div className="sds-hero-glow"></div>
                     <div className="sds-hero-content">
                         <div className="sds-hero-badge">
                             <span className="sds-badge-dot"></span>
-                            AI Smart Suggestion
+                            AI Diagnostic Engine
                         </div>
                         <h1>Smart Doctor Suggestion</h1>
-                        <p>Answer a few questions about your symptoms and we'll suggest the right specialist for you.</p>
+                        <p>Our advanced AI leverages millions of medical records to match your symptoms with the most suitable medical expert.</p>
                     </div>
 
-                    {/* Steps */}
+                    {/* Progress Steps */}
                     <div className="sds-steps">
-                        <div className={`sds-step ${step >= 1 ? 'active' : ''} ${step > 1 ? 'completed' : ''}`}>
-                            <div className="sds-step-number">{step > 1 ? '✓' : '1'}</div>
-                            <span>Your Info</span>
-                        </div>
-                        <div className="sds-step-line"></div>
                         <div className={`sds-step ${step >= 2 ? 'active' : ''} ${step > 2 ? 'completed' : ''}`}>
-                            <div className="sds-step-number">{step > 2 ? '✓' : '2'}</div>
-                            <span>Symptoms</span>
+                            <div className="sds-step-number">{step > 2 ? '✓' : '1'}</div>
+                            <span>Symptoms List</span>
                         </div>
                         <div className="sds-step-line"></div>
                         <div className={`sds-step ${step >= 3 ? 'active' : ''}`}>
-                            <div className="sds-step-number">3</div>
-                            <span>Results</span>
+                            <div className="sds-step-number">2</div>
+                            <span>Medical Advice</span>
                         </div>
                     </div>
                 </section>
 
-                {/* Content */}
-                <section className="sds-content">
+                <section className="sds-content" ref={contentRef}>
 
-                    {/* Step 1: Patient Info */}
-                    {step === 1 && (
-                        <div className="sds-card sds-info-card">
+
+                    {/* Step 2: Symptoms Search & Select */}
+                    {step === 2 && (
+                        <div className="sds-card sds-symptoms-card">
                             <div className="sds-card-header">
-                                <div className="sds-card-icon">👤</div>
-                                <h2>Patient Information</h2>
+                                <Stethoscope className="text-accent" size={24} />
+                                <h2>Identify Symptoms</h2>
+                                <span className="sds-count-badge">
+                                    {selectedSymptoms.length} Selected
+                                </span>
                             </div>
                             <div className="sds-card-body">
-                                <div className="sds-form-group">
-                                    <label>Age</label>
-                                    <input
-                                        type="number"
-                                        className="sds-input"
-                                        placeholder="Enter your age"
-                                        value={age}
-                                        onChange={(e) => setAge(e.target.value)}
-                                        min="1"
-                                        max="120"
-                                    />
+                                <div className="sds-search-box">
+                                    <div className="sds-search-input-wrapper">
+                                        <Search className="sds-search-icon" size={18} />
+                                        <input
+                                            type="text"
+                                            className="sds-input sds-search-input"
+                                            placeholder="Search symptoms (e.g., headache, fever...)"
+                                            value={searchTerm}
+                                            onChange={(e) => setSearchTerm(e.target.value)}
+                                        />
+                                        {searchTerm && (
+                                            <X 
+                                                className="sds-clear-search" 
+                                                size={18} 
+                                                onClick={() => setSearchTerm('')} 
+                                            />
+                                        )}
+                                    </div>
+
+                                    {/* Search Suggestions */}
+                                    {searchTerm && filteredSymptoms.length > 0 && (
+                                        <div className="sds-suggestions-dropdown">
+                                            {filteredSymptoms.slice(0, 5).map(s => (
+                                                <div 
+                                                    key={s} 
+                                                    className="sds-suggestion-item"
+                                                    onClick={() => { toggleSymptom(s); setSearchTerm(''); }}
+                                                >
+                                                    {s}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
-                                <div className="sds-form-group">
-                                    <label>Gender</label>
-                                    <div className="sds-gender-options">
-                                        {['Male', 'Female', 'Other'].map(g => (
+
+                                {/* Selected Symptoms Tags */}
+                                <div className="sds-selected-tags">
+                                    {selectedSymptoms.length > 0 ? (
+                                        selectedSymptoms.map(s => (
+                                            <span key={s} className="sds-tag">
+                                                {s}
+                                                <X size={14} onClick={() => toggleSymptom(s)} />
+                                            </span>
+                                        ))
+                                    ) : (
+                                        <p className="sds-no-tags">No symptoms selected yet. Use the search bar above.</p>
+                                    )}
+                                </div>
+
+                                {/* Quick Select List */}
+                                <div className="sds-quick-select">
+                                    <h3>Common Symptoms</h3>
+                                    <div className="sds-chip-group">
+                                        {symptomsData.slice(0, 10).map(s => (
                                             <button
-                                                key={g}
-                                                className={`sds-gender-btn ${gender === g ? 'active' : ''}`}
-                                                onClick={() => setGender(g)}
+                                                key={s}
+                                                className={`sds-chip ${selectedSymptoms.includes(s) ? 'active' : ''}`}
+                                                onClick={() => toggleSymptom(s)}
                                             >
-                                                {g === 'Male' ? '👨' : g === 'Female' ? '👩' : '🧑'} {g}
+                                                {s}
                                             </button>
                                         ))}
                                     </div>
                                 </div>
-                                <button
-                                    className="sds-btn sds-btn-primary"
-                                    onClick={handleSubmitInfo}
-                                    disabled={!age || !gender}
-                                >
-                                    Continue to Symptoms →
-                                </button>
-                            </div>
-                        </div>
-                    )}
 
-                    {/* Step 2: Symptom Questions */}
-                    {step === 2 && (
-                        <div className="sds-card sds-symptoms-card">
-                            <div className="sds-card-header">
-                                <div className="sds-card-icon">🩺</div>
-                                <h2>Symptom Assessment</h2>
-                                <span className="sds-progress-badge">
-                                    {Object.keys(answers).length}/{SYMPTOM_QUESTIONS.length}
-                                </span>
-                            </div>
-                            <div className="sds-card-body">
-                                <p className="sds-hint">Please answer Yes or No for each symptom below:</p>
-                                <div className="sds-questions-list">
-                                    {SYMPTOM_QUESTIONS.map((q, index) => (
-                                        <div key={q.id} className={`sds-question ${answers[q.id] ? 'answered' : ''}`}>
-                                            <div className="sds-question-left">
-                                                <span className="sds-question-num">{index + 1}</span>
-                                                <span className="sds-question-icon">{q.icon}</span>
-                                                <span className="sds-question-text">{q.label}</span>
-                                            </div>
-                                            <div className="sds-radio-group">
-                                                <label className={`sds-radio ${answers[q.id] === 'yes' ? 'sds-radio-yes' : ''}`}>
-                                                    <input
-                                                        type="radio"
-                                                        name={q.id}
-                                                        value="yes"
-                                                        checked={answers[q.id] === 'yes'}
-                                                        onChange={() => handleAnswer(q.id, 'yes')}
-                                                    />
-                                                    <span className="sds-radio-label">Yes</span>
-                                                </label>
-                                                <label className={`sds-radio ${answers[q.id] === 'no' ? 'sds-radio-no' : ''}`}>
-                                                    <input
-                                                        type="radio"
-                                                        name={q.id}
-                                                        value="no"
-                                                        checked={answers[q.id] === 'no'}
-                                                        onChange={() => handleAnswer(q.id, 'no')}
-                                                    />
-                                                    <span className="sds-radio-label">No</span>
-                                                </label>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
                                 <div className="sds-actions">
-                                    <button className="sds-btn sds-btn-secondary" onClick={() => setStep(1)}>
-                                        ← Back
+                                    <button className="sds-btn sds-btn-secondary" onClick={() => navigate('/eCare')}>
+                                        Cancel
                                     </button>
                                     <button
                                         className="sds-btn sds-btn-primary"
                                         onClick={handleSubmitSymptoms}
-                                        disabled={!allAnswered || isLoading}
+                                        disabled={selectedSymptoms.length === 0 || isLoading}
                                     >
                                         {isLoading ? (
                                             <>
-                                                <div className="sds-spinner"></div>
-                                                Finding Doctor...
+                                                <Loader2 className="animate-spin" size={20} />
+                                                Analyzing Health Data...
                                             </>
                                         ) : (
-                                            'Find My Doctor →'
+                                            'Run AI Diagnosis →'
                                         )}
                                     </button>
                                 </div>
@@ -245,72 +242,67 @@ const SmartDocSuggestion = () => {
                     {/* Step 3: Results */}
                     {step === 3 && results && (
                         <div className="sds-card sds-results-card">
-                            <div className="sds-card-header">
-                                <div className="sds-card-icon">✅</div>
-                                <h2>Recommendation</h2>
+                            <div className="sds-card-header bg-success-light">
+                                <CheckCircle2 className="text-success" size={24} />
+                                <h2>AI Recommendation Engine</h2>
                             </div>
                             <div className="sds-card-body">
-                                {/* Summary */}
-                                <div className="sds-result-summary">
-                                    <div className="sds-result-item">
-                                        <span className="sds-result-label">Age</span>
-                                        <span className="sds-result-value">{results.age}</span>
+                                
+                                <div className="sds-result-grid">
+                                    <div className="sds-prediction-box">
+                                        <div className="sds-label">Suspected Condition</div>
+                                        <div className="sds-value capitalize">{results.prediction}</div>
+                                        <div className="sds-confidence-pill">{(results.confidence * 100).toFixed(1)}% Accuracy Confidence</div>
                                     </div>
-                                    <div className="sds-result-item">
-                                        <span className="sds-result-label">Gender</span>
-                                        <span className="sds-result-value">{results.gender}</span>
-                                    </div>
-                                    <div className="sds-result-item sds-result-highlight">
-                                        <span className="sds-result-label">Recommended Specialist</span>
-                                        <span className="sds-result-value">{results.specialization}</span>
+                                    
+                                    <div className="sds-specialist-box">
+                                        <div className="sds-label">Consult With</div>
+                                        <div className="sds-value">{results.specialization}</div>
                                     </div>
                                 </div>
 
-                                {/* Symptoms */}
-                                {results.symptoms.length > 0 && (
-                                    <div className="sds-symptoms-summary">
-                                        <h3>Your Symptoms</h3>
-                                        <div className="sds-symptom-tags">
-                                            {results.symptoms.map((s, i) => (
-                                                <span key={i} className="sds-symptom-tag">{s}</span>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-
-                                {/* Doctors */}
+                                {/* Doctors List */}
                                 <div className="sds-doctors-section">
-                                    <h3>Available Doctors</h3>
+                                    <h3>Recommended Specialists at NCC</h3>
                                     {results.doctors.length > 0 ? (
-                                        <div className="sds-doctors-list">
+                                        <div className="sds-doctor-grid">
                                             {results.doctors.map(doc => (
-                                                <div key={doc.id} className="sds-doctor-card">
-                                                    <div className="sds-doctor-avatar">👨‍⚕️</div>
-                                                    <div className="sds-doctor-info">
+                                                <div key={doc.id} className="sds-doc-result-card">
+                                                    <div className="sds-doc-icon">👨‍⚕️</div>
+                                                    <div className="sds-doc-meta">
                                                         <h4>{doc.name}</h4>
-                                                        <p className="sds-doctor-spec">{doc.specialization}</p>
-                                                        {doc.hospital && <p className="sds-doctor-hospital">🏥 {doc.hospital}</p>}
+                                                        <p>{doc.hospital || 'Narammala Channeling Center'}</p>
                                                     </div>
+                                                    <button 
+                                                        className="sds-channel-btn"
+                                                        onClick={() => navigate(`/ecare/book/${doc.id}`)}
+                                                    >
+                                                        Channel Now
+                                                    </button>
                                                 </div>
                                             ))}
                                         </div>
                                     ) : (
-                                        <div className="sds-no-doctors">
-                                            <p>No doctors found for {results.specialization}. Please visit a general physician.</p>
+                                        <div className="sds-empty-state">
+                                            <AlertCircle size={32} />
+                                            <p>No specialists available right now. Please consult our general physician.</p>
                                         </div>
                                     )}
                                 </div>
 
-                                <div className="sds-disclaimer">
-                                    ⚕️ This is an AI-based suggestion and not a professional medical diagnosis. Please consult a qualified doctor for proper examination.
+                                <div className="sds-medical-disclaimer glass">
+                                    <AlertCircle size={16} />
+                                    <span>
+                                        NCC eCare AI is an advisory tool. Always seek the advice of your physician or other qualified health provider with any questions you may have regarding a medical condition.
+                                    </span>
                                 </div>
 
                                 <div className="sds-actions">
-                                    <button className="sds-btn sds-btn-secondary" onClick={handleReset}>
-                                        Start Over
+                                    <button className="sds-btn sds-btn-outline" onClick={handleReset}>
+                                        New Consultation
                                     </button>
-                                    <button className="sds-btn sds-btn-outline" onClick={() => navigate('/eCare')}>
-                                        ← Back to eCare
+                                    <button className="sds-btn sds-btn-secondary" onClick={() => navigate('/eCare')}>
+                                        Return Home
                                     </button>
                                 </div>
                             </div>
@@ -321,10 +313,11 @@ const SmartDocSuggestion = () => {
             </main>
 
             <footer className="sds-footer">
-                <p>&copy; 2026 NCC eCare - Narammala Channeling Center. All rights reserved.</p>
+                <p>&copy; 2026 NCC eCare - Narammala Channeling Center. Medical Grade AI Integration.</p>
             </footer>
         </div>
     );
 };
 
 export default SmartDocSuggestion;
+

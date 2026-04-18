@@ -136,7 +136,8 @@ const DoctorProfile = () => {
                 navigate('/');
             } catch (error) {
                 console.error('Error deleting account:', error);
-                alert('Failed to delete account.');
+                const errorMsg = error.response?.data?.message || 'Failed to delete account.';
+                alert(errorMsg);
             }
         }
     };
@@ -189,14 +190,30 @@ const DoctorProfile = () => {
                             
                             <div className="form-group">
                                 <label>Specialization</label>
-                                <input 
-                                    type="text" 
+                                <select 
                                     name="specialization" 
                                     value={formData.specialization} 
                                     onChange={handleInputChange} 
                                     disabled={!isEditing} 
                                     required 
-                                />
+                                    className="form-select"
+                                >
+                                    <option value="">Select Specialization</option>
+                                    <option value="Dermatologist">Dermatologist</option>
+                                    <option value="Cardiologist">Cardiologist</option>
+                                    <option value="Neurologist">Neurologist</option>
+                                    <option value="ENT Specialist">ENT Specialist</option>
+                                    <option value="Gastroenterologist">Gastroenterologist</option>
+                                    <option value="Orthopedic Surgeon">Orthopedic Surgeon</option>
+                                    <option value="Psychiatrist">Psychiatrist</option>
+                                    <option value="Urologist">Urologist</option>
+                                    <option value="Gynecologist">Gynecologist</option>
+                                    <option value="Ophthalmologist">Ophthalmologist</option>
+                                    <option value="Dentist">Dentist</option>
+                                    <option value="Endocrinologist">Endocrinologist</option>
+                                    <option value="Emergency Care Physician">Emergency Care Physician</option>
+                                    <option value="General Physician">General Physician</option>
+                                </select>
                             </div>
 
                             <div className="form-group">

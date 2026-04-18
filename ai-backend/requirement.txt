@@ -7,4 +7,6 @@ easyocr
 opencv-python-headless
 python-multipart
 requests
-pymupdf
+joblib
+xgboost
+scikit-learn
