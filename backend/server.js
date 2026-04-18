@@ -28,7 +28,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Routes
 app.use('/api/auth', authRoutes);
-app.use('/api/doctors', doctorRoutes);
+app.use('/api/auth', doctorRoutes);
 app.use('/api/patient', patientRoutes);
 app.use('/api/support', supportRoutes);
 app.use('/api/payment', paymentRoutes);
@@ -44,7 +44,7 @@ app.use('/api/admin/users', require('./routes/adminUserRoutes'));
 app.use("/api/admin/doctor-requests", require("./routes/adminDoctorApprovalRoutes"));
 
 // Test Route
-app.get('/', (res) => {
+app.get('/', (req, res) => {
     res.send('Doctor Channeling System API is running');
 });
 
