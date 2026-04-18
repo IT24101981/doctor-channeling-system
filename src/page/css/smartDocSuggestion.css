@@ -887,4 +887,191 @@
     .sds-doctor-grid {
         grid-template-columns: 1fr 1fr;
     }
+}
+
+/* ====================================================
+   60-30-10 Brand Alignment Overrides
+==================================================== */
+
+.sds-page {
+    background-color: #f1f5f9;
+}
+
+.sds-hero {
+    background: #1e3a5f;
+    padding: 56px 40px;
+}
+
+.sds-card {
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+}
+
+.sds-card-header {
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.sds-card-header h2 {
+    color: #1e3a5f;
+}
+
+.sds-prediction-box {
+    background: #1e3a5f;
+    border-radius: 12px;
+}
+
+.sds-specialist-box {
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+}
+
+.sds-view-specialists-btn {
+    background: #2563eb;
+    color: white;
+    padding: 14px 32px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    border: none;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 10px;
+    transition: all 0.2s;
+}
+
+.sds-view-specialists-btn:hover {
+    background: #1d4ed8;
+    transform: translateY(-1px);
+}
+
+.sds-symptom-tag, .sds-tag {
+    background: #eff6ff !important;
+    color: #2563eb !important;
+    border: 1px solid #dbeafe !important;
+    border-radius: 6px !important;
+}
+
+.sds-btn-outline {
+    border: 2px solid #1e3a5f !important;
+    color: #1e3a5f !important;
+}
+
+.sds-btn-outline:hover {
+    background: rgba(30, 58, 95, 0.05) !important;
+}
+
+.sds-btn-secondary {
+    background: #f8fafc !important;
+    color: #64748b !important;
+    border: 1px solid #e2e8f0 !important;
+}
+
+.sds-btn-secondary:hover {
+    background: #e2e8f0 !important;
+}
+
+.sds-medical-disclaimer {
+    background: #f1f5f9 !important;
+    border-radius: 8px !important;
+    padding: 14px 18px !important;
+    color: #64748b !important;
+    margin-top: 24px !important;
+    border-left: none !important;
+    font-style: normal !important;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.sds-medical-disclaimer svg {
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.sds-redirect-container {
+    padding: 30px;
+    background: #f8fafc;
+    border-radius: 12px;
+    border: 1px dashed #cbd5e1;
+    text-align: center;
+    margin: 20px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+
+.sds-symptoms-summary-pilled {
+    border-top: 1px solid #e2e8f0;
+    margin-top: 32px;
+    padding-top: 24px;
+    width: 100%;
+}
+
+.sds-symptoms-summary-pilled h3 {
+    font-size: 13px;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 16px;
+    text-transform: uppercase;
+}
+
+.sds-availability-note {
+    font-size: 12px;
+    color: #64748b;
+    text-align: center;
+    margin-top: 8px;
+}
+
+/* ====================================================
+   Step 2 Components (Identify Symptoms) Overrides
+==================================================== */
+
+.sds-input, .sds-search-input {
+    border-radius: 10px !important;
+    background: #f8fafc !important;
+    border: 2px solid #e2e8f0 !important;
+}
+
+.sds-input:focus, .sds-search-input:focus {
+    border-color: #2563eb !important;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1) !important;
+    background: white !important;
+}
+
+.sds-chip {
+    border-radius: 6px !important;
+    border: 1px solid #e2e8f0 !important;
+    color: #64748b !important;
+    background: white !important;
+    padding: 6px 14px !important;
+}
+
+.sds-chip:hover {
+    border-color: #2563eb !important;
+    color: #2563eb !important; 
+    background: #f8fafc !important;
+}
+
+.sds-chip.active {
+    background: #2563eb !important;
+    border-color: #2563eb !important;
+    color: white !important;
+}
+
+.sds-btn {
+    border-radius: 10px !important;
+}
+
+.sds-btn-primary {
+    background: #1e3a5f !important;
+    color: white !important;
+    border: none !important;
+}
+
+.sds-btn-primary:active, .sds-btn-primary:hover:not(:disabled) {
+    background: #0f2137 !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(15, 33, 55, 0.2) !important;
 }

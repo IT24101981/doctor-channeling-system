@@ -199,10 +199,7 @@ const ReportExplainer = () => {
                 <section className="re-hero">
                     <div className="re-hero-glow"></div>
                     <div className="re-hero-content">
-                        <div className="re-hero-badge">
-                            <span className="re-badge-dot"></span>
-                            AI Powered Analysis
-                        </div>
+
                         <h1>AI Report Explainer</h1>
                         <p>Upload up to 5 medical reports (Image or PDF) and get instant AI-powered explanations in your preferred language.</p>
                     </div>

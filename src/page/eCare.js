@@ -126,7 +126,7 @@ const ECare = () => {
                                     <span className="material-symbols-outlined">lightbulb</span>
                                 </div>
                                 <div className="ai-card-badge">
-                                    <span className="ai-badge-dot"></span>
+
                                     AI Powered
                                 </div>
                                 <h3>Smart Suggestions</h3>
@@ -164,7 +164,7 @@ const ECare = () => {
                                     <span className="material-symbols-outlined">article</span>
                                 </div>
                                 <div className="ai-card-badge ai-explainer-badge">
-                                    <span className="ai-badge-dot"></span>
+
                                     Report Analysis
                                 </div>
                                 <h3>AI Report Explainer</h3>

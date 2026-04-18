@@ -771,3 +771,180 @@
         gap: 8px;
     }
 }
+
+/* ====================================================
+   60-30-10 Brand Alignment Overrides (eCare Theme)
+==================================================== */
+
+.re-page {
+    background-color: #f1f5f9;
+}
+
+.re-hero {
+    background: #1e3a5f;
+    padding: 56px 40px;
+}
+
+.re-step-number {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.re-step.completed .re-step-number {
+    background: #2563eb;
+    border-color: #2563eb;
+}
+
+.re-panel {
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+    border: 1px solid #e2e8f0;
+}
+
+.re-panel-header {
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.re-panel-header h2 {
+    color: #1e3a5f;
+}
+
+.re-panel-icon-teal, .re-panel-icon-green {
+    background: #1e3a5f;
+}
+
+.re-btn {
+    border-radius: 10px !important;
+}
+
+.re-btn-primary {
+    background: #2563eb !important;
+    color: white !important;
+    border: none !important;
+}
+
+.re-btn-primary:active, .re-btn-primary:hover:not(:disabled) {
+    background: #1d4ed8 !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2) !important;
+}
+
+.re-btn-secondary {
+    background: #f8fafc !important;
+    color: #64748b !important;
+    border: 1px solid #e2e8f0 !important;
+}
+
+.re-btn-secondary:hover {
+    background: #e2e8f0 !important;
+}
+
+.re-btn-outline {
+    border: 2px solid #1e3a5f !important;
+    color: #1e3a5f !important;
+}
+
+.re-btn-outline:hover {
+    background: rgba(30, 58, 95, 0.05) !important;
+}
+
+.re-btn-extract {
+    background: #2563eb !important;
+}
+
+.re-btn-extract:hover:not(:disabled) {
+    background: #1d4ed8 !important;
+}
+
+.re-dropzone {
+    background: #f8fafc;
+    border: 2px dashed #cbd5e1;
+}
+
+.re-dropzone:hover, .re-dropzone.drag-active {
+    border-color: #2563eb;
+    background: #eff6ff;
+}
+
+.re-dropzone-icon {
+    background: #eff6ff;
+}
+
+.re-dropzone-icon svg {
+    color: #2563eb;
+}
+
+.re-lang-btn.active {
+    border-color: #2563eb;
+    background: #eff6ff;
+    color: #2563eb;
+}
+
+.re-ocr-textarea {
+    border-radius: 10px;
+    background: #f8fafc;
+    border: 2px solid #e2e8f0;
+}
+
+.re-ocr-textarea:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    background: white;
+}
+
+.re-md-h3, .re-md-h4 {
+    color: #1e3a5f;
+}
+
+.re-md-bullet::before {
+    color: #2563eb;
+}
+
+.re-md-disclaimer {
+    background: #f1f5f9;
+    border-left: 3px solid #2563eb;
+    border-radius: 8px;
+    color: #64748b;
+}
+
+.re-footer {
+    background: #1e3a5f;
+}
+
+/* Further Component Overrides for 60-30-10 match */
+.re-panel-icon {
+    background: #1e3a5f !important;
+}
+
+.re-editable-badge {
+    color: #1e3a5f !important;
+    background: #e2e8f0 !important;
+}
+
+.re-empty-icon {
+    background: #eff6ff !important;
+}
+
+.re-empty-icon svg {
+    color: #2563eb !important;
+}
+
+.re-pdf-thumb-icon {
+    color: #2563eb !important;
+}
+
+.re-lang-btn:hover {
+    border-color: #2563eb !important;
+    color: #2563eb !important;
+}
+
+.re-lang-btn.active {
+    border-color: #2563eb !important;
+    background: #eff6ff !important;
+    color: #2563eb !important;
+}
+
+.re-spinner {
+    border-top-color: #2563eb !important;
+}

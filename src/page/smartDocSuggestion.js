@@ -115,10 +115,7 @@ const SmartDocSuggestion = () => {
                 <section className="sds-hero" ref={heroRef}>
                     <div className="sds-hero-glow"></div>
                     <div className="sds-hero-content">
-                        <div className="sds-hero-badge">
-                            <span className="sds-badge-dot"></span>
-                            AI Diagnostic Engine
-                        </div>
+                        
                         <h1>Smart Doctor Suggestion</h1>
                         <p>Our advanced AI leverages millions of medical records to match your symptoms with the most suitable medical expert.</p>
                     </div>
@@ -259,33 +256,43 @@ const SmartDocSuggestion = () => {
                                         <div className="sds-label">Consult With</div>
                                         <div className="sds-value">{results.specialization}</div>
                                     </div>
-                                </div>
-
-                                {/* Doctors List */}
+                                </div>                                 {/* Redirect Button instead of List */}
                                 <div className="sds-doctors-section">
-                                    <h3>Recommended Specialists at NCC</h3>
                                     {results.doctors.length > 0 ? (
-                                        <div className="sds-doctor-grid">
-                                            {results.doctors.map(doc => (
-                                                <div key={doc.id} className="sds-doc-result-card">
-                                                    <div className="sds-doc-icon">👨‍⚕️</div>
-                                                    <div className="sds-doc-meta">
-                                                        <h4>{doc.name}</h4>
-                                                        <p>{doc.hospital || 'Narammala Channeling Center'}</p>
-                                                    </div>
-                                                    <button 
-                                                        className="sds-channel-btn"
-                                                        onClick={() => navigate(`/ecare/book/${doc.id}`)}
-                                                    >
-                                                        Channel Now
-                                                    </button>
+                                        <>
+                                            <div className="sds-redirect-container">
+                                                <button 
+                                                    className="sds-btn sds-btn-primary sds-view-specialists-btn"
+                                                    onClick={() => navigate(`/ecare/doctors?specialization=${results.specialization}`)}
+                                                >
+                                                    View {results.specialization}s at NCC eCare
+                                                </button>
+                                                <p className="sds-availability-note">
+                                                    We found {results.doctors.length} available {results.specialization}(s) for you.
+                                                </p>
+                                            </div>
+
+                                            <div className="sds-symptoms-summary-pilled">
+                                                <h3>Your Reported Symptoms</h3>
+                                                <div className="sds-symptom-tags">
+                                                    {results.symptoms.map(s => (
+                                                        <span key={s} className="sds-symptom-tag">{s}</span>
+                                                    ))}
                                                 </div>
-                                            ))}
-                                        </div>
+                                            </div>
+                                        </>
                                     ) : (
-                                        <div className="sds-empty-state">
-                                            <AlertCircle size={32} />
-                                            <p>No specialists available right now. Please consult our general physician.</p>
+                                        <div className="sds-empty-state" style={{ textAlign: 'center', padding: '30px' }}>
+                                            <AlertCircle size={32} style={{ color: '#64748B', marginBottom: '12px' }} />
+                                            <p style={{ color: '#0F172A', fontWeight: '500', marginBottom: '20px' }}>
+                                                No specialists available right now. Please consult our general physician.
+                                            </p>
+                                            <button 
+                                                className="sds-btn sds-btn-outline"
+                                                onClick={() => navigate(`/ecare/doctors?specialization=General Physician`)}
+                                            >
+                                                View General Physicians
+                                            </button>
                                         </div>
                                     )}
                                 </div>

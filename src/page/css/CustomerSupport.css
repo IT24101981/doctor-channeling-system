@@ -1360,3 +1360,12 @@
     color: #1a1a2e;
     margin: 0;
 }
+/* Consistency overhaul for the whole system design */
+.ticket-form, .ticket-card, .cs-user-card, .cs-tickets-section, .cs-create-btn, .cs-status-badge {
+    border-radius: 12px !important;
+}
+
+.ticket-form input, .ticket-form textarea, .ticket-form select {
+    border-radius: 8px !important;
+}
+

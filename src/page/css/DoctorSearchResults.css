@@ -970,3 +970,13 @@
     .dsr-modal-body { flex-direction: column; align-items: center; padding: 20px; }
     .dsr-bottom-disclaimer { flex-direction: column; text-align: center; gap: 6px; }
 }
+
+/* Consistency overhaul for the whole system design */
+.dsr-input-group, .dsr-search-btn, .dsr-back-btn, .dsr-card, .dsr-modal, .dsr-book-btn {
+    border-radius: 12px !important;
+}
+
+.dsr-card-header {
+    border-radius: 12px 12px 0 0 !important;
+}
+
