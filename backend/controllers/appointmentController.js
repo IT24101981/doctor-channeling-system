@@ -666,3 +666,45 @@ exports.ensurePendingBookingAndPaymentFromNotify = async ({
         if (connection) connection.release();
     }
 };
+
+exports.getDoctorAppointments = async (req, res) => {
+    const { doctor_id } = req.params;
+    const { startDate, endDate } = req.query;
+
+    try {
+        let query = `
+            SELECT 
+                a.id,
+                a.appointment_status,
+                a.booking_queue_no,
+                CONCAT(p.first_name, ' ', p.second_name) as patient_name,
+                s.schedule_date,
+                s.start_time,
+                s.end_time,
+                s.price
+            FROM appointments a
+            JOIN patients p ON a.patient_ID = p.id
+            JOIN appointment_schedules s ON a.schedule_id = s.id
+            WHERE a.doctor_id = ?
+        `;
+        let params = [doctor_id];
+
+        if (startDate) {
+            query += ` AND s.schedule_date >= ?`;
+            params.push(startDate);
+        }
+        if (endDate) {
+            query += ` AND s.schedule_date <= ?`;
+            params.push(endDate);
+        }
+
+        query += ` ORDER BY s.schedule_date DESC, s.start_time DESC`;
+
+        const [appointments] = await db.execute(query, params);
+
+        res.status(200).json({ success: true, message: 'Doctor appointments fetched successfully', data: appointments });
+    } catch (error) {
+        console.error('Get doctor appointments error:', error);
+        res.status(500).json({ success: false, message: 'Server error while fetching appointments' });
+    }
+};

@@ -7,6 +7,7 @@ router.post('/finalize', appointmentController.finalizeAppointment);
 
 router.get('/schedule/:schedule_id', appointmentController.getAppointmentsBySchedule);
 router.get('/patient/:patient_id', appointmentController.getPatientAppointments);
+router.get('/doctor/:doctor_id', appointmentController.getDoctorAppointments);
 router.put('/:id', appointmentController.updateAppointment);
 router.delete('/:id', appointmentController.deleteAppointment);
 

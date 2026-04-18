@@ -29,6 +29,7 @@ import DoctorSearchResults from './page/DoctorSearchResults';
 import DoctorProfile from './page/DoctorProfile';
 import DoctorPending from './page/DoctorPending';
 import DoctorReject from './page/DoctorReject';
+import DoctorAppointmentView from './page/doctorAppoinmentViwe';
 import GlobalModals from './Components/GlobalModals';
 
 function App() {
@@ -67,6 +68,7 @@ function App() {
           <Route path="/ecare/doctors" element={<DoctorSearchResults />} />
           <Route path="/doctorpending" element={<DoctorPending />} />
           <Route path="/doctorreject" element={<DoctorReject />} />
+          <Route path="/doctor/appointments" element={<DoctorAppointmentView />} />
         </Routes>
       </div>
     </>
