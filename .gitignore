@@ -23,3 +23,15 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .cursor/debug-dfddf7.log
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.env
+.venv
+
