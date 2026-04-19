@@ -16,12 +16,9 @@ const NGROK_PUBLIC_BASE = (
     process.env.REACT_APP_NGROK_BASE || 'https://unboldly-nonpantheistic-dwight.ngrok-free.dev'
 ).replace(/\/$/, '');
 
-/** Full notify URL; prioritize REACT_APP_PAYHERE_NOTIFY_URL, then NGROK for local, then live API_BASE. */
+/** Full notify URL; override entirely with REACT_APP_PAYHERE_NOTIFY_URL if needed. */
 const PAYHERE_NOTIFY_URL =
-    process.env.REACT_APP_PAYHERE_NOTIFY_URL || 
-    (window.location.hostname === 'localhost' 
-        ? `${NGROK_PUBLIC_BASE}/api/payment/notify` 
-        : `${API_BASE}/api/payment/notify`);
+    process.env.REACT_APP_PAYHERE_NOTIFY_URL || `${NGROK_PUBLIC_BASE}/api/payment/notify`;
 
 /** PayHere sometimes passes a string; guard against objects / whitespace. */
 const resolvePayHereOrderId = (raw) => {
