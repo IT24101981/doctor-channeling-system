@@ -6,7 +6,7 @@ exports.getDoctors = async (req, res) => {
 
         let query = 'SELECT DISTINCT d.id, d.name, d.specialization, d.email, d.phone, d.hospital, d.consulting_fee FROM doctors d';
         const params = [];
-        const whereClauses = [];
+        const whereClauses = ["d.status = 'approved'"];
 
         if (date && date.trim() !== '') {
             query += ' JOIN doc_availability_slots s ON d.id = s.doctor_id';
@@ -47,7 +47,7 @@ exports.getDoctors = async (req, res) => {
 exports.getSpecializations = async (req, res) => {
     try {
         const [rows] = await db.execute(
-            'SELECT DISTINCT specialization FROM doctors ORDER BY specialization ASC'
+            "SELECT DISTINCT specialization FROM doctors WHERE status = 'approved' ORDER BY specialization ASC"
         );
         const specializations = rows.map(r => r.specialization);
         res.status(200).json({ specializations });
