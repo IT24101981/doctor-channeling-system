@@ -10,3 +10,5 @@ requests
 joblib
 xgboost
 scikit-learn
+google-genai
+pymupdf

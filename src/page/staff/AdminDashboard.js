@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { FaUsers, FaUserTie, FaStethoscope, FaClipboardList } from 'react-icons/fa';
+import { FaUsers, FaUserTie, FaStethoscope, FaClipboardList, FaHeadset } from 'react-icons/fa';
 import LogoHospital from '../../images/LogoHospital.png';
 import '../css/CashierDashboard.css';
 import '../css/StaffDashboard.css';
@@ -858,6 +858,11 @@ const AdminDashboard = () => {
                                     <FaStethoscope size={40} color="#1E3A5F" style={{ marginBottom: '16px' }} />
                                     <h3 style={{ margin: '0 0 10px 0', color: '#1E3A5F', fontSize: '20px', fontWeight: 'bold' }}>Doctor Management</h3>
                                     <p style={{ margin: 0, color: '#6b7280', fontSize: '15px' }}>Total Doctors: {doctors.length}</p>
+                                </div>
+                                <div className="dashboard-card-2x2" onClick={() => navigate('/ecare/staff/HRCustomerSupport')}>
+                                    <FaHeadset size={40} color="#1E3A5F" style={{ marginBottom: '16px' }} />
+                                    <h3 style={{ margin: '0 0 10px 0', color: '#1E3A5F', fontSize: '20px', fontWeight: 'bold' }}>Customer Support</h3>
+                                    <p style={{ margin: 0, color: '#6b7280', fontSize: '15px' }}>Manage patient inquiries</p>
                                 </div>
                             </div>
                         </>

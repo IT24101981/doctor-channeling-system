@@ -51,7 +51,7 @@ function App() {
           <Route path="/ecare/staff/cashier" element={<StaffProtectedRoute element={<CashierDashboard />} allowedRoles={['Cashier']} />} />
           <Route path="/ecare/staff/refunds" element={<StaffProtectedRoute element={<RefundPayment />} allowedRoles={['Cashier', 'Admin']} />} />
           <Route path="/ecare/staff/hr" element={<StaffProtectedRoute element={<HRDashboard />} allowedRoles={['HR']} />} />
-          <Route path="/ecare/staff/hr/customer-support" element={<StaffProtectedRoute element={<HRCustomerSupport />} allowedRoles={['HR', 'Admin']} />} />
+          <Route path="/ecare/staff/HRCustomerSupport" element={<StaffProtectedRoute element={<HRCustomerSupport />} allowedRoles={['HR', 'Admin']} />} />
           <Route path="/ecare/staff/booking" element={<StaffProtectedRoute element={<BookingManagerDashboard />} allowedRoles={['Booking Manager']} />} />
           <Route path="/schedules/create" element={<StaffProtectedRoute element={<CreateSchedule />} allowedRoles={['Booking Manager']} />} />
           <Route path="/schedules/manage" element={<StaffProtectedRoute element={<ManageSchedules />} allowedRoles={['Booking Manager']} />} />

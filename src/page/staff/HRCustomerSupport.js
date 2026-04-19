@@ -182,8 +182,29 @@ const HRCustomerSupport = () => {
                 </div>
             )}
             <main className="cs-main">
-                <div className="cs-topic-header">
+                <div className="cs-topic-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <h2>NCC eCare Customer Support (HR)</h2>
+                    {user && user.role === 'HR' && (
+                        <button 
+                            onClick={() => window.history.back()} 
+                            style={{
+                                padding: '8px 16px',
+                                borderRadius: '8px',
+                                border: '1px solid #E2E8F0',
+                                background: 'white',
+                                color: '#1E3A5F',
+                                fontSize: '14px',
+                                fontWeight: '600',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px'
+                            }}
+                        >
+                            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>arrow_back</span>
+                            Back to Dashboard
+                        </button>
+                    )}
                 </div>
 
                 <div className="cs-user-card cs-user-card-hr">
