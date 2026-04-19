@@ -66,6 +66,11 @@ const ForgotPassword = () => {
             setError('Passwords do not match');
             return;
         }
+        const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/;
+        if (!passwordRegex.test(newPassword)) {
+            setError('Password must be at least 8 characters long and contain both letters and numbers');
+            return;
+        }
         setIsLoading(true);
         try {
             const response = await fetch(`${apiBase}/api/auth/forgot-password/reset`, {
@@ -180,11 +185,11 @@ const ForgotPassword = () => {
                                     id="newPassword"
                                     type="password"
                                     autoComplete="new-password"
-                                    placeholder="At least 6 characters"
+                                    placeholder="At least 8 characters with letters and numbers"
                                     value={newPassword}
                                     onChange={(e) => setNewPassword(e.target.value)}
                                     required
-                                    minLength={6}
+                                    minLength={8}
                                 />
                             </div>
                         </div>
@@ -199,7 +204,7 @@ const ForgotPassword = () => {
                                     value={confirmPassword}
                                     onChange={(e) => setConfirmPassword(e.target.value)}
                                     required
-                                    minLength={6}
+                                    minLength={8}
                                 />
                             </div>
                         </div>

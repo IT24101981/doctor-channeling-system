@@ -56,6 +56,23 @@ const Profile = ({ patientId, onClose, onUpdate }) => {
         setError(null);
         setSuccess(null);
 
+        // Validation
+        const nameRegex = /^[A-Za-z\s]+$/;
+        const phoneRegex = /^0\d{9}$/;
+
+        if (!nameRegex.test(formData.firstName)) {
+            setError('First name should only contain characters');
+            return;
+        }
+        if (!nameRegex.test(formData.secondName)) {
+            setError('Second name should only contain characters');
+            return;
+        }
+        if (!phoneRegex.test(formData.phone)) {
+            setError('Please enter a valid Sri Lankan phone number (e.g., 0712345678)');
+            return;
+        }
+
         console.log('Starting profile update for patientId:', patientId);
         console.log('Data being sent:', formData);
 

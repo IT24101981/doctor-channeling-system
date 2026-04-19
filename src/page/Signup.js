@@ -33,6 +33,15 @@ const Signup = () => {
     const validateForm = () => {
         const newErrors = {};
 
+        // Name Validation (Characters and spaces only)
+        const nameRegex = /^[A-Za-z\s]+$/;
+        if (!nameRegex.test(formData.firstName)) {
+            newErrors.firstName = 'First name should only contain characters';
+        }
+        if (!nameRegex.test(formData.secondName)) {
+            newErrors.secondName = 'Second name should only contain characters';
+        }
+
         // Mobile Number Validation (Sri Lanka: Begins with 0, 10 digits)
         const phoneRegex = /^0\d{9}$/;
         if (!phoneRegex.test(formData.phone)) {
@@ -50,9 +59,10 @@ const Signup = () => {
             newErrors.confirmPassword = 'Passwords do not match';
         }
 
-        // Password Strength (Optional, but good practice)
-        if (formData.password.length < 6) {
-            newErrors.password = 'Password must be at least 6 characters long';
+        // Password Strength
+        const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/;
+        if (!passwordRegex.test(formData.password)) {
+            newErrors.password = 'Password must be at least 8 characters long and contain both letters and numbers';
         }
 
         setErrors(newErrors);
@@ -154,6 +164,7 @@ const Signup = () => {
                                         autoComplete="off"
                                     />
                                 </div>
+                                {errors.firstName && <span className="error-message">{errors.firstName}</span>}
                             </div>
                             <div className="form-group">
                                 <label htmlFor="secondName">Second Name</label>
@@ -169,6 +180,7 @@ const Signup = () => {
                                         autoComplete="off"
                                     />
                                 </div>
+                                {errors.secondName && <span className="error-message">{errors.secondName}</span>}
                             </div>
                         </div>
 

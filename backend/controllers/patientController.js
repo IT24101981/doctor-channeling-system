@@ -66,6 +66,19 @@ exports.updateProfile = async (req, res) => {
             return res.status(400).json({ message: 'Required fields are missing' });
         }
 
+        const nameRegex = /^[A-Za-z\s]+$/;
+        const phoneRegex = /^0\d{9}$/;
+
+        if (!nameRegex.test(firstName)) {
+            return res.status(400).json({ message: 'First name should only contain characters' });
+        }
+        if (!nameRegex.test(secondName)) {
+            return res.status(400).json({ message: 'Second name should only contain characters' });
+        }
+        if (!phoneRegex.test(phone)) {
+            return res.status(400).json({ message: 'Invalid phone number format' });
+        }
+
         console.log(`Executing SQL: UPDATE patients SET first_name = '${firstName}', second_name = '${secondName}', phone = '${phone}' WHERE id = ${parseInt(id)}`);
 
         const [result] = await db.execute(
