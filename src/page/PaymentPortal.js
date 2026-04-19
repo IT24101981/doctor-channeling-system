@@ -11,14 +11,10 @@ const PAYMENT_CONTEXT_KEY = 'paymentContext';
 
 const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
-/** Public backend base (ngrok → port 5000). PayHere calls this host — not localhost. */
-const NGROK_PUBLIC_BASE = (
-    process.env.REACT_APP_NGROK_BASE || 'https://unboldly-nonpantheistic-dwight.ngrok-free.dev'
-).replace(/\/$/, '');
-
 /** Full notify URL; override entirely with REACT_APP_PAYHERE_NOTIFY_URL if needed. */
 const PAYHERE_NOTIFY_URL =
-    process.env.REACT_APP_PAYHERE_NOTIFY_URL || `${NGROK_PUBLIC_BASE}/api/payment/notify`;
+    process.env.REACT_APP_PAYHERE_NOTIFY_URL || 
+    (process.env.REACT_APP_API_URL ? `${process.env.REACT_APP_API_URL}/api/payment/notify` : '');
 
 /** PayHere sometimes passes a string; guard against objects / whitespace. */
 const resolvePayHereOrderId = (raw) => {
