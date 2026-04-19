@@ -30,7 +30,7 @@ exports.getAllAvailability = async (req, res) => {
             SELECT a.*, d.name AS doctor_name, d.specialization 
             FROM doc_availability_slots a
             JOIN doctors d ON a.doctor_id = d.id
-            WHERE a.is_available = 1
+            WHERE a.is_available = 1 AND d.status = 'approved'
             ORDER BY a.day_of_week ASC, a.start_time ASC
         `);
 

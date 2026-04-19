@@ -119,7 +119,7 @@ async def suggest_doctor(specialization: str = "General"):
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
         cursor.execute(
-            "SELECT id, name, specialization, hospital, email, phone FROM doctors WHERE LOWER(specialization) LIKE LOWER(%s)",
+            "SELECT id, name, specialization, hospital, email, phone FROM doctors WHERE LOWER(specialization) LIKE LOWER(%s) AND status = 'approved'",
             (f"%{specialization}%",)
         )
         doctors = cursor.fetchall()

@@ -53,6 +53,7 @@ exports.getAllSchedules = async (req, res) => {
             SELECT s.*, d.name AS doctor_name, d.specialization 
             FROM appointment_schedules s
             JOIN doctors d ON s.doctor_id = d.id
+            WHERE d.status = 'approved'
             ORDER BY s.schedule_date ASC, s.start_time ASC
         `);
         res.status(200).json({ success: true, message: 'Schedules fetched successfully', data: schedules });
@@ -69,7 +70,7 @@ exports.getScheduleById = async (req, res) => {
             SELECT s.*, d.name AS doctor_name, d.specialization 
             FROM appointment_schedules s
             JOIN doctors d ON s.doctor_id = d.id
-            WHERE s.id = ?
+            WHERE s.id = ? AND d.status = 'approved'
         `, [id]);
 
         if (schedules.length === 0) {
@@ -105,6 +106,8 @@ exports.getSchedulesByDate = async (req, res) => {
             baseQuery += ' AND s.doctor_id = ?';
             params.push(doctor_id);
         }
+
+        baseQuery += " AND d.status = 'approved'";
 
         baseQuery += ' ORDER BY d.name ASC, s.start_time ASC';
 
