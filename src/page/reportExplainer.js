@@ -96,7 +96,8 @@ const ReportExplainer = () => {
                 formData.append('files', file);
             });
 
-            const response = await fetch('http://localhost:8000/api/ocr', {
+            const AI_API_URL = process.env.REACT_APP_AI_API_URL || 'http://localhost:8000';
+            const response = await fetch(`${AI_API_URL}/api/ocr`, {
                 method: 'POST',
                 body: formData,
             });
@@ -119,7 +120,8 @@ const ReportExplainer = () => {
         if (!ocrText.trim()) return;
         setIsAnalyzing(true);
         try {
-            const response = await fetch('http://localhost:8000/api/explain', {
+            const AI_API_URL = process.env.REACT_APP_AI_API_URL || 'http://localhost:8000';
+            const response = await fetch(`${AI_API_URL}/api/explain`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 

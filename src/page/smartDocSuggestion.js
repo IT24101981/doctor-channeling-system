@@ -69,7 +69,8 @@ const SmartDocSuggestion = () => {
             // If the model throws an error, we can adjust.
             
             // 1. Get AI Disease Prediction
-            const predictResponse = await fetch(`http://localhost:8000/api/predict`, {
+            const AI_API_URL = process.env.REACT_APP_AI_API_URL || 'http://localhost:8000';
+            const predictResponse = await fetch(`${AI_API_URL}/api/predict`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(featureVector)
@@ -78,7 +79,8 @@ const SmartDocSuggestion = () => {
 
             if (predictData.success) {
                 // 2. Search for doctors by the recommended specialist
-                const doctorResponse = await fetch(`http://localhost:8000/api/suggest-doctor?specialization=${predictData.suggested_specialist}`);
+                const AI_API_URL = process.env.REACT_APP_AI_API_URL || 'http://localhost:8000';
+                const doctorResponse = await fetch(`${AI_API_URL}/api/suggest-doctor?specialization=${predictData.suggested_specialist}`);
                 const doctorData = await doctorResponse.json();
 
                 setResults({
