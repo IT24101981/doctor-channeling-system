@@ -241,6 +241,12 @@ const DoctorAvailability = () => {
                             </svg>
                             Profile
                         </button>
+                        <button className="btn-appointments" onClick={() => navigate('/doctor/appointments')}>
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h2v2H7v-2zm0 4h2v2H7v-2zm4-4h2v2h-2v-2zm0 4h2v2h-2v-2zm4-4h2v2h-2v-2zm0 4h2v2h-2v-2z" />
+                            </svg>
+                            Appointments
+                        </button>
                         <button className="btn-logout" onClick={handleLogout}>
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
                                 <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z" />
@@ -426,31 +432,9 @@ const DoctorAvailability = () => {
                             </div>
                         </form>
 
-                        {/* Preview of appointment slots */}
+                        {/* Preview of appointment slots counts */}
                         {formData.start_time && formData.end_time && formData.slot_duration && (
                             <div className="slots-preview">
-                                <h3>Appointment Slots Preview</h3>
-                                <div className="preview-timeline">
-                                    {(() => {
-                                        const slots = [];
-                                        const start = new Date(`2000-01-01T${formData.start_time}`);
-                                        const end = new Date(`2000-01-01T${formData.end_time}`);
-                                        let current = new Date(start);
-
-                                        while (current < end) {
-                                            const timeStr = current.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                                            slots.push(
-                                                <div key={timeStr} className="preview-slot">
-                                                    <span className="slot-time">{timeStr}</span>
-                                                    <span className="slot-token">Token #{slots.length + 1}</span>
-                                                </div>
-                                            );
-                                            current = new Date(current.getTime() + formData.slot_duration * 60000);
-                                        }
-
-                                        return slots;
-                                    })()}
-                                </div>
                                 <p className="preview-note">
                                     Total slots available: {Math.floor(
                                         (new Date(`2000-01-01T${formData.end_time}`) - new Date(`2000-01-01T${formData.start_time}`)) /
@@ -548,7 +532,6 @@ const DoctorAvailability = () => {
                     <ul className="tips-list">
                         <li>Set realistic capacities based on your consultation time</li>
                         <li>Mark slots as unavailable when you're on leave</li>
-                        <li>The system automatically generates appointment tokens based on slot duration</li>
                     </ul>
                 </div>
             </div>

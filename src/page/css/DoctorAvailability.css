@@ -88,6 +88,7 @@
 }
 
 .btn-profile,
+.btn-appointments,
 .btn-logout {
     display: flex;
     align-items: center;
@@ -102,19 +103,22 @@
     font-family: 'Inter', sans-serif;
 }
 
-.btn-profile {
+.btn-profile,
+.btn-appointments {
     background: rgba(255, 255, 255, 0.12);
     color: white;
     border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-.btn-profile svg {
+.btn-profile svg,
+.btn-appointments svg {
     width: 18px;
     height: 18px;
     fill: currentColor;
 }
 
-.btn-profile:hover {
+.btn-profile:hover,
+.btn-appointments:hover {
     background: rgba(255, 255, 255, 0.2);
     transform: translateY(-1px);
 }
