@@ -27,7 +27,7 @@ app = FastAPI(title="NCC eCare AI Backend", version="1.0.0")
 # CORS - Allow React frontend access
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=[os.getenv("FRONTEND_URL", "http://localhost:3000")],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
