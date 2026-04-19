@@ -9,6 +9,7 @@ const ReportExplainer = () => {
     const [uploadedFiles, setUploadedFiles] = useState([]); // Array of File objects
     const [filePreviews, setFilePreviews] = useState([]); // Array of preview objects {url, name, type}
     const [selectedLanguage, setSelectedLanguage] = useState('English');
+    const [selectedModel, setSelectedModel] = useState('Gemini 3.1 Flash Lite');
     const [ocrText, setOcrText] = useState('');
     const [explainedText, setExplainedText] = useState('');
     const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -123,7 +124,8 @@ const ReportExplainer = () => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
                     text: ocrText,
-                    language: selectedLanguage
+                    language: selectedLanguage,
+                    model: selectedModel
                 }),
             });
 
@@ -319,24 +321,6 @@ const ReportExplainer = () => {
                                 </div>
                             )}
 
-                            {step === 1 && (
-                                <div className="re-language-selector-container">
-                                    <div className="re-language-selector">
-                                        <h3>Choose Summary Language</h3>
-                                        <div className="re-lang-options">
-                                            {['English', 'Sinhala', 'Tamil'].map(lang => (
-                                                <button
-                                                    key={lang}
-                                                    className={`re-lang-btn ${selectedLanguage === lang ? 'active' : ''}`}
-                                                    onClick={() => setSelectedLanguage(lang)}
-                                                >
-                                                    {lang}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
                         </div>
 
                         {/* Right Panel — OCR Text / Results */}
@@ -372,6 +356,35 @@ const ReportExplainer = () => {
                                         placeholder="Extracted text will appear here..."
                                         rows={12}
                                     />
+
+                                    <div className="re-analysis-settings">
+                                        <div className="re-setting-group">
+                                            <h3>Summary Language</h3>
+                                            <div className="re-lang-options">
+                                                {['English', 'Sinhala', 'Tamil'].map(lang => (
+                                                    <button
+                                                        key={lang}
+                                                        className={`re-lang-btn ${selectedLanguage === lang ? 'active' : ''}`}
+                                                        onClick={() => setSelectedLanguage(lang)}
+                                                    >
+                                                        {lang}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                        <div className="re-setting-group">
+                                            <h3>AI Model</h3>
+                                            <select 
+                                                className="re-model-select"
+                                                value={selectedModel}
+                                                onChange={(e) => setSelectedModel(e.target.value)}
+                                            >
+                                                <option value="Gemini 3.1 Flash Lite">Gemini 3.1 Flash Lite</option>
+                                                <option value="Gemma 4 26B">Gemma 4 26B</option>
+                                                <option value="Gemma 3 27B">Gemma 3 27B</option>
+                                            </select>
+                                        </div>
+                                    </div>
                                     <div className="re-ocr-actions">
                                         <button className="re-btn re-btn-secondary" onClick={handleReset}>
                                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">

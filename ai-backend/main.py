@@ -44,28 +44,37 @@ class SymptomsRequest(BaseModel):
 class ReportTextRequest(BaseModel):
     text: str
     language: str = "English"
+    model: str = "Gemini 3.1 Flash Lite"
 
 # LLM Query Function - Gemini for Report Explanation
-def query_llm_for_report(report_text, language="English"):
+def query_llm_for_report(report_text, language="English", model_name="Gemini 3.1 Flash Lite"):
     """Send medical report text to Gemini LLM for simple explanation"""
     prompt = REPORT_EXPLAIN_PROMPT.format(report_text=report_text, language=language)
     
+    # Model mapping (Optimized for current API availability and quota)
+    model_map = {
+        "Gemini 3.1 Flash Lite": "models/gemini-2.5-flash",
+        "Gemma 4 26B": "models/gemma-4-26b-a4b-it",
+        "Gemma 3 27B": "models/gemma-3-27b-it"
+    }
+    
+    selected_model = model_map.get(model_name, "models/gemini-2.5-flash")
+    
     try:
-        # Using gemini-3.1-flash-lite-preview as requested
         response = client.models.generate_content(
-            model="gemini-3.1-flash-lite-preview",
+            model=selected_model,
             contents=prompt
         )
         return response.text
     except Exception as e:
-        print(f"Error in Gemini request: {e}")
+        print(f"Error in Gemini request ({selected_model}): {e}")
         raise e
 
 # ENDPOINT 1: Medical Report Explainer (LLM)
 @app.post("/api/explain")
 async def explain_report(req: ReportTextRequest):
     try:
-        explanation = query_llm_for_report(req.text, req.language)
+        explanation = query_llm_for_report(req.text, req.language, req.model)
         return {"success": True, "explanation": explanation}
     except Exception as e:
         print(f"ERROR in explain: {e}")
