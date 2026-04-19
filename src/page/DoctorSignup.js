@@ -70,8 +70,10 @@ const DoctorSignup = () => {
             newErrors.confirmPassword = 'Passwords do not match';
         }
 
-        if (formData.password.length < 6) {
-            newErrors.password = 'Password must be at least 6 characters long';
+        // Password Strength
+        const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/;
+        if (!passwordRegex.test(formData.password)) {
+            newErrors.password = 'Password must be at least 8 characters long and contain both letters and numbers';
         }
 
         setErrors(newErrors);

@@ -28,6 +28,24 @@ exports.registerPatient = async (req, res) => {
             return res.status(400).json({ message: 'All fields are required' });
         }
 
+        const nameRegex = /^[A-Za-z\s]+$/;
+        const phoneRegex = /^0\d{9}$/;
+
+        if (!nameRegex.test(firstName)) {
+            return res.status(400).json({ message: 'First name should only contain characters' });
+        }
+        if (!nameRegex.test(secondName)) {
+            return res.status(400).json({ message: 'Second name should only contain characters' });
+        }
+        if (!phoneRegex.test(phone)) {
+            return res.status(400).json({ message: 'Invalid phone number format' });
+        }
+
+        const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/;
+        if (!passwordRegex.test(password)) {
+            return res.status(400).json({ message: 'Password must be at least 8 characters long and contain both letters and numbers' });
+        }
+
         // Verify reCAPTCHA
         const isRecaptchaValid = await verifyRecaptcha(recaptchaToken);
         if (!isRecaptchaValid) {
@@ -135,6 +153,11 @@ exports.registerDoctor = async (req, res) => {
         // Validation
         if (!name || !specialization || !slmcId || !nic || !email || !phone || !password) {
             return res.status(400).json({ message: 'Required fields are missing' });
+        }
+
+        const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/;
+        if (!passwordRegex.test(password)) {
+            return res.status(400).json({ message: 'Password must be at least 8 characters long and contain both letters and numbers' });
         }
 
         // Verify reCAPTCHA
@@ -420,8 +443,9 @@ exports.forgotPasswordReset = async (req, res) => {
         if (newPassword !== confirmPassword) {
             return res.status(400).json({ message: 'Passwords do not match' });
         }
-        if (String(newPassword).length < 6) {
-            return res.status(400).json({ message: 'Password must be at least 6 characters' });
+        const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/;
+        if (!passwordRegex.test(String(newPassword))) {
+            return res.status(400).json({ message: 'Password must be at least 8 characters long and contain both letters and numbers' });
         }
 
         let payload;
