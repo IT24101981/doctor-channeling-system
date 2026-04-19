@@ -379,26 +379,33 @@ exports.getPaymentDetails = async (req, res) => {
 exports.generateHash = async (req, res) => {
     // get payhere credentials from .env file
     const { paymentID, amount, currency, patientID, appointmentScheduleId, sandbox } = req.body;
-    const merchantID = process.env.PAYHERE_MERCHENT_ID.trim();
-    const merchentSecret = process.env.PAYHERE_SECRET_CODE.trim();
+    const merchantID = (process.env.PAYHERE_MERCHANT_ID || '').trim();
+    const merchantSecret = (process.env.PAYHERE_SECRET_CODE || '').trim();
 
     try {
+        if (!merchantID || !merchantSecret) {
+            throw new Error('Merchant ID or Secret is missing in Environment Variables');
+        }
+
         // create hash upperCase(MD5(MerchantID + paymentID + Amount + Currency + UpperCase(MD5(MerchantSecret))))
-        const hashedSecret = crypto.createHash('md5').update(merchentSecret).digest('hex').toUpperCase();
+        const hashedSecret = crypto.createHash('md5').update(merchantSecret).digest('hex').toUpperCase();
+        
+        // PayHere expects amount formatted to 2 decimal places without commas
         const amountFormatted = Number(amount).toLocaleString('en-US', {
-            minimumFractionDigits: 2
-        }).replaceAll(',', '');
+            minimumFractionDigits: 2,
+            useGrouping: false
+        });
 
         const hashRaw = merchantID + paymentID + amountFormatted + currency + hashedSecret;
         const hash = crypto.createHash('md5').update(hashRaw).digest('hex').toUpperCase();
 
         res.status(200).json({
             hash,
-            merchantID: merchantID.trim()
+            merchantID: merchantID
         });
     } catch (error) {
-        console.error('Error in generateHash:', error);
-        res.status(500).json({ message: 'Could not initialize payment. Please try again later.' });
+        console.error('Error in generateHash:', error.message);
+        res.status(500).json({ message: 'Could not initialize payment. Please check backend environment variables.' });
     }
 };
 
