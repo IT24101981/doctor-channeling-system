@@ -37,14 +37,10 @@ const HRDashboard = () => {
                     <p>Manage employee records, attendance, and recruitment.</p>
                 </div>
 
-                                <div className="dashboard-grid">
+                <div className="dashboard-grid">
                     <div className="dashboard-card">
                         <h3>Employee Directory</h3>
                         <p>View all staff members</p>
-                    </div>
-                    <div className="dashboard-card" onClick={() => navigate('/ecare/staff/HRCustomerSupport')} style={{ cursor: 'pointer' }}>
-                        <h3>Customer Support</h3>
-                        <p>Manage support tickets and patient inquiries</p>
                     </div>
                     <div className="dashboard-card">
                         <h3>Attendance</h3>
@@ -56,8 +52,8 @@ const HRDashboard = () => {
                     </div>
                     <div 
                         className="dashboard-card" 
-                        onClick={() => navigate('/ecare/staff/hr/customer-support')}
-                        style={{ cursor: 'pointer', borderLeft: '4px solid #9C27B0' }}
+                        onClick={() => navigate('/ecare/staff/HRCustomerSupport')}
+                        style={{ cursor: 'pointer', borderLeft: '4px solid #1E3A5F' }}
                     >
                         <h3>Customer Support</h3>
                         <p>Manage patient support tickets</p>
