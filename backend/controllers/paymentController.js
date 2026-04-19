@@ -387,26 +387,17 @@ exports.generateHash = async (req, res) => {
             throw new Error('Merchant ID or Secret is missing in Environment Variables');
         }
 
-        console.log('--- PayHere Hash Debugging ---');
-        console.log('Merchant ID:', merchantID);
-        console.log('Payment ID:', paymentID);
-        console.log('Amount:', amount);
-        console.log('Currency:', currency);
-
         // create hash upperCase(MD5(MerchantID + paymentID + Amount + Currency + UpperCase(MD5(MerchantSecret))))
         const hashedSecret = crypto.createHash('md5').update(merchantSecret).digest('hex').toUpperCase();
         
+        // PayHere expects amount formatted to 2 decimal places without commas
         const amountFormatted = Number(amount).toLocaleString('en-US', {
             minimumFractionDigits: 2,
             useGrouping: false
         });
 
         const hashRaw = merchantID + paymentID + amountFormatted + currency + hashedSecret;
-        console.log('Full Hash Raw String:', hashRaw);
-        
         const hash = crypto.createHash('md5').update(hashRaw).digest('hex').toUpperCase();
-        console.log('Generated Hash:', hash);
-        console.log('------------------------------');
 
         res.status(200).json({
             hash,
