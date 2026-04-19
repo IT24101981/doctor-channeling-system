@@ -4,7 +4,7 @@ import ECareNavBar from '../Components/eCareNavBar';
 import './css/smartDocSuggestion.css';
 import symptomsData from '../data/symptoms.json';
 import gsap from 'gsap';
-import { Search, X, Loader2, User, Stethoscope, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Search, X, Loader2, Stethoscope, CheckCircle2, AlertCircle } from 'lucide-react';
 
 const SmartDocSuggestion = () => {
     const navigate = useNavigate();

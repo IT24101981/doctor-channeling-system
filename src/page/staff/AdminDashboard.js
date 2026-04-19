@@ -60,8 +60,8 @@ const AdminDashboard = () => {
             upper[Math.floor(Math.random() * upper.length)],
             lower[Math.floor(Math.random() * lower.length)],
             lower[Math.floor(Math.random() * lower.length)],
-            nums [Math.floor(Math.random() * nums.length)],
-            nums [Math.floor(Math.random() * nums.length)],
+            nums[Math.floor(Math.random() * nums.length)],
+            nums[Math.floor(Math.random() * nums.length)],
         ];
         // Fill remaining characters
         for (let i = pwd.length; i < 10; i++) {
