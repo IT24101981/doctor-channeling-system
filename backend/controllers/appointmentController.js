@@ -538,8 +538,7 @@ exports.ensurePendingBookingAndPaymentFromNotify = async ({
     paymentStatus,
     final_payment_id,
     final_method,
-    final_card_digits,
-    notifyEnvironment
+    final_card_digits
 }) => {
     let connection;
     try {
@@ -632,8 +631,8 @@ exports.ensurePendingBookingAndPaymentFromNotify = async ({
         try {
             const [payHeader] = await connection.execute(
                 `INSERT INTO payments
-                (appointment_id, internal_order_id, patient_id, doctor_id, appointment_schedule_id, amount, payment_status, payhere_payment_id, payment_method, card_last_digits, payment_environment)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                (appointment_id, internal_order_id, patient_id, doctor_id, appointment_schedule_id, amount, payment_status, payhere_payment_id, payment_method, card_last_digits)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
                 [
                     newAppointmentId,
                     internal_order_id,
@@ -644,8 +643,7 @@ exports.ensurePendingBookingAndPaymentFromNotify = async ({
                     paymentStatus,
                     final_payment_id,
                     final_method,
-                    final_card_digits,
-                    notifyEnvironment || null
+                    final_card_digits
                 ]
             );
             const paymentRowId = payHeader.insertId;
