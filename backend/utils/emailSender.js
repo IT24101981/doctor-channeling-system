@@ -15,11 +15,13 @@ function getTransporter() {
     }
     const port = Number(process.env.SMTP_PORT || 587);
     const secure = String(process.env.SMTP_SECURE || '').toLowerCase() === 'true' || port === 465;
+    const forceIpv4 = String(process.env.SMTP_FORCE_IPV4 || '').toLowerCase() === 'true';
     transporter = nodemailer.createTransport({
         host,
         port,
         secure,
-        auth: { user, pass }
+        auth: { user, pass },
+        ...(forceIpv4 ? { family: 4 } : {})
     });
     return transporter;
 }
