@@ -1,6 +1,7 @@
 'use strict';
 
 const nodemailer = require('nodemailer');
+const axios = require('axios');
 
 let transporter;
 
@@ -26,6 +27,38 @@ function getTransporter() {
     return transporter;
 }
 
+function getResendConfig() {
+    const apiKey = process.env.RESEND_API_KEY;
+    const from = process.env.RESEND_FROM;
+    if (!apiKey || !from) return null;
+    return { apiKey, from };
+}
+
+async function sendWithResend(opts) {
+    const cfg = getResendConfig();
+    if (!cfg) return { sent: false, provider: null };
+
+    await axios.post(
+        'https://api.resend.com/emails',
+        {
+            from: cfg.from,
+            to: [opts.to],
+            subject: opts.subject,
+            text: opts.text,
+            html: opts.html || opts.text.replace(/\n/g, '<br>')
+        },
+        {
+            headers: {
+                Authorization: `Bearer ${cfg.apiKey}`,
+                'Content-Type': 'application/json'
+            },
+            timeout: Number(process.env.RESEND_TIMEOUT_MS || 15000)
+        }
+    );
+
+    return { sent: true, provider: 'resend' };
+}
+
 /**
  * @param {{ to: string, subject: string, text: string, html?: string, attachments?: any[] }} opts
  */
@@ -36,19 +69,27 @@ async function sendMail(opts) {
         process.env.SMTP_FROM_EMAIL ||
         process.env.EMAIL_FROM ||
         process.env.SMTP_USER;
-    if (!t || !from) {
-        console.warn('[email] SMTP not configured; skipping send to', opts.to);
-        return { sent: false };
+
+    // Prefer SMTP when configured; fall back to Resend (HTTPS) when SMTP is blocked.
+    if (t && from) {
+        try {
+            await t.sendMail({
+                from,
+                to: opts.to,
+                subject: opts.subject,
+                text: opts.text,
+                html: opts.html || opts.text.replace(/\n/g, '<br>'),
+                ...(opts.attachments ? { attachments: opts.attachments } : {})
+            });
+            return { sent: true, provider: 'smtp' };
+        } catch (err) {
+            console.error('[email] SMTP send failed; trying Resend fallback:', err?.code || err?.message || err);
+            return await sendWithResend(opts);
+        }
     }
-    await t.sendMail({
-        from,
-        to: opts.to,
-        subject: opts.subject,
-        text: opts.text,
-        html: opts.html || opts.text.replace(/\n/g, '<br>'),
-        ...(opts.attachments ? { attachments: opts.attachments } : {})
-    });
-    return { sent: true };
+
+    // SMTP not configured at all -> try Resend.
+    return await sendWithResend(opts);
 }
 
 module.exports = { sendMail, getTransporter };
