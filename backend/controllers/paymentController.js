@@ -663,6 +663,8 @@ exports.getAllPaymentsForCashier = async (req, res) => {
             SELECT
                 p.appointment_id,
                 NULLIF(TRIM(CONCAT(COALESCE(pt.first_name, ''), ' ', COALESCE(pt.second_name, ''))), '') AS patient_name,
+                pt.email AS patient_email,
+                pt.phone AS patient_phone,
                 d.name AS doctor_name,
                 p.internal_order_id AS transaction_id,
                 p.payment_method,
@@ -680,6 +682,8 @@ exports.getAllPaymentsForCashier = async (req, res) => {
             SELECT
                 p.appointment_id,
                 NULLIF(TRIM(CONCAT(COALESCE(pt.first_name, ''), ' ', COALESCE(pt.second_name, ''))), '') AS patient_name,
+                pt.email AS patient_email,
+                pt.phone AS patient_phone,
                 d.name AS doctor_name,
                 p.internal_order_id AS transaction_id,
                 p.payment_method,

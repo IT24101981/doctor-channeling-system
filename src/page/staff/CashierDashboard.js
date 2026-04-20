@@ -65,6 +65,8 @@ const CashierDashboard = () => {
                         id: item.appointment_id,
                         orderId: item.transaction_id || 'N/A',
                         patientName: item.patient_name || 'Unknown Patient',
+                        patientEmail: item.patient_email || '',
+                        patientPhone: item.patient_phone || '',
                         doctorName: item.doctor_name || 'Assigned Doctor',
                         amount: parseFloat(item.amount) || 0,
                         method: item.payment_method || 'Online',
@@ -111,6 +113,7 @@ const CashierDashboard = () => {
     });
 
     const handleRefund = (payment) => setModal({ open: true, type: 'refund', data: payment });
+    const handleOpenPatient = (payment) => setModal({ open: true, type: 'patient', data: payment });
 
     const confirmRefund = async () => {
         if (!modal?.data?.orderId || refundSubmitting) return;
@@ -408,7 +411,19 @@ const CashierDashboard = () => {
                                                 <td style={{ fontFamily: 'monospace', fontSize: '12px', color: '#64748B' }}>
                                                     {payment.orderId.length > 20 ? payment.orderId.substring(0, 20) + '…' : payment.orderId}
                                                 </td>
-                                                <td style={{ fontWeight: 500 }}>{payment.patientName}</td>
+                                                <td
+                                                    style={{ fontWeight: 500 }}
+                                                    className="cashier-patient-cell"
+                                                    role="button"
+                                                    tabIndex={0}
+                                                    title="View patient details"
+                                                    onClick={() => handleOpenPatient(payment)}
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === 'Enter' || e.key === ' ') handleOpenPatient(payment);
+                                                    }}
+                                                >
+                                                    {payment.patientName}
+                                                </td>
                                                 <td style={{ color: '#64748B' }}>{payment.doctorName}</td>
                                                 <td style={{ fontWeight: 600, color: '#0f172aff' }}>
                                                     LKR {payment.amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}
@@ -476,6 +491,58 @@ const CashierDashboard = () => {
             {modal.open && (
                 <div className="cashier-modal-overlay" onClick={closeModal}>
                     <div className="cashier-modal" onClick={e => e.stopPropagation()}>
+                        {modal.type === 'patient' && (
+                            <>
+                                <h3>Patient details</h3>
+                                <div className="cashier-patient-details">
+                                    <div className="cashier-patient-details-row">
+                                        <span className="label">Name</span>
+                                        <span className="value">{modal.data?.patientName || '—'}</span>
+                                    </div>
+                                    <div className="cashier-patient-details-row">
+                                        <span className="label">Phone</span>
+                                        <span className="value">
+                                            {modal.data?.patientPhone ? (
+                                                <button
+                                                    type="button"
+                                                    className="cashier-copy-btn"
+                                                    onClick={() => {
+                                                        navigator.clipboard?.writeText(String(modal.data.patientPhone));
+                                                        showToast('Phone number copied');
+                                                    }}
+                                                    title="Copy phone number"
+                                                >
+                                                    {modal.data.patientPhone}
+                                                    <span className="material-symbols-outlined" style={{ fontSize: 16 }}>content_copy</span>
+                                                </button>
+                                            ) : '—'}
+                                        </span>
+                                    </div>
+                                    <div className="cashier-patient-details-row">
+                                        <span className="label">Email</span>
+                                        <span className="value">
+                                            {modal.data?.patientEmail ? (
+                                                <button
+                                                    type="button"
+                                                    className="cashier-copy-btn"
+                                                    onClick={() => {
+                                                        navigator.clipboard?.writeText(String(modal.data.patientEmail));
+                                                        showToast('Email address copied');
+                                                    }}
+                                                    title="Copy email"
+                                                >
+                                                    {modal.data.patientEmail}
+                                                    <span className="material-symbols-outlined" style={{ fontSize: 16 }}>content_copy</span>
+                                                </button>
+                                            ) : '—'}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div className="modal-actions">
+                                    <button className="modal-btn cancel" onClick={closeModal}>Close</button>
+                                </div>
+                            </>
+                        )}
                         {modal.type === 'refund' && (
                             <>
                                 <h3>Confirm Refund</h3>
