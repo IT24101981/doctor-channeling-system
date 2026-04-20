@@ -12,7 +12,8 @@ const scheduleRoutes = require('./routes/scheduleRoutes');
 const appointmentRoutes = require('./routes/appointmentRoutes');
 const refundRequestRoutes = require('./routes/refundRequestRoutes');
 
-dotenv.config();
+// Always load backend/.env regardless of CWD (root scripts vs backend scripts).
+dotenv.config({ path: path.join(__dirname, '.env') });
 
 const app = express();
 const PORT = process.env.PORT || 5000;
