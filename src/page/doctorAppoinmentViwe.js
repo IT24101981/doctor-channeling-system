@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from '../config';
 import { useNavigate } from 'react-router-dom';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
@@ -52,7 +53,7 @@ const DoctorAppointmentView = () => {
     const fetchAppointments = async (doctorId, start = '', end = '') => {
         setLoading(true);
         try {
-            const response = await axios.get(`http://localhost:5000/api/appointments/doctor/${doctorId}`, {
+            const response = await axios.get(`${API_BASE_URL}/api/appointments/doctor/${doctorId}`, {
                 params: { startDate: start, endDate: end }
             });
             setAppointments(response.data.data);

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import axios from 'axios';
+import { API_BASE_URL } from '../config';
 import ECareNavBar from '../Components/eCareNavBar';
 import './css/DoctorAvailability.css';
 
@@ -78,7 +79,7 @@ const DoctorAvailability = () => {
 
     const fetchAvailability = async (doctorId) => {
         try {
-            const response = await axios.get(`http://localhost:5000/api/availability/${doctorId}`);
+            const response = await axios.get(`${API_BASE_URL}/api/availability/${doctorId}`);
             setAvailability(response.data);
             setLoading(false);
         } catch (error) {
@@ -138,9 +139,9 @@ const DoctorAvailability = () => {
         try {
             const payload = { ...formData, doctor_id: doctor.id };
             if (editingSlot) {
-                await axios.put(`http://localhost:5000/api/availability/${editingSlot.id}`, payload);
+                await axios.put(`${API_BASE_URL}/api/availability/${editingSlot.id}`, payload);
             } else {
-                await axios.post('http://localhost:5000/api/availability', payload);
+                await axios.post(`${API_BASE_URL}/api/availability`, payload);
             }
 
             await fetchAvailability(doctor.id);
@@ -178,7 +179,7 @@ const DoctorAvailability = () => {
     const handleDelete = async (slotId) => {
         if (window.confirm('Are you sure you want to delete this availability slot? This action cannot be undone.')) {
             try {
-                await axios.delete(`http://localhost:5000/api/availability/${slotId}`);
+                await axios.delete(`${API_BASE_URL}/api/availability/${slotId}`);
                 await fetchAvailability(doctor.id);
             } catch (error) {
                 console.error('Error deleting slot:', error);
@@ -192,7 +193,7 @@ const DoctorAvailability = () => {
         if (!slot) return;
 
         try {
-            await axios.patch(`http://localhost:5000/api/availability/${slotId}/toggle`, {
+            await axios.patch(`${API_BASE_URL}/api/availability/${slotId}/toggle`, {
                 is_available: !slot.is_available
             });
             await fetchAvailability(doctor.id);

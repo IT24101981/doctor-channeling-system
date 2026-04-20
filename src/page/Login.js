@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { API_BASE_URL } from '../config';
 
 import './css/Login.css';
 import ReCAPTCHA from "react-google-recaptcha";
@@ -49,7 +50,7 @@ const Login = () => {
         setIsLoading(true);
 
         try {
-            const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/auth/login`, {
+            const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -128,7 +129,7 @@ const Login = () => {
         setForgotLoading(true);
         try {
             const response = await fetch(
-                `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/auth/forgot-password/request`,
+                `${API_BASE_URL}/api/auth/forgot-password/request`,
                 {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },

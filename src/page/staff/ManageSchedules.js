@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { API_BASE_URL } from '../../config';
 import ECareNavBar from '../../Components/eCareNavBar';
 import { formatDateTimeLK } from '../../utils/sriLankaTime';
 import '../css/ManageSchedules.css';
@@ -28,7 +29,7 @@ const ManageSchedules = () => {
     useEffect(() => {
         const fetchDoctors = async () => {
             try {
-                const response = await fetch('http://localhost:5000/api/auth/doctors');
+                const response = await fetch(`${API_BASE_URL}/api/auth/doctors`);
                 const data = await response.json();
                 if (response.ok && data.doctors) {
                     setAllDoctors(data.doctors);
@@ -58,7 +59,7 @@ const ManageSchedules = () => {
 
             const queryString = queryParams.toString() ? `?${queryParams.toString()}` : '';
 
-            const res = await fetch(`http://localhost:5000/api/schedules/date/${formattedDate}${queryString}`);
+            const res = await fetch(`${API_BASE_URL}/api/schedules/date/${formattedDate}${queryString}`);
             const data = await res.json();
             if (data.success) {
                 setSchedules(data.data);
@@ -76,7 +77,7 @@ const ManageSchedules = () => {
     const handleStatusToggle = async (scheduleId, currentStatus) => {
         const nextStatus = currentStatus === 'active' ? 'cancelled' : 'active';
         try {
-            const res = await fetch(`http://localhost:5000/api/schedules/${scheduleId}/status`, {
+            const res = await fetch(`${API_BASE_URL}/api/schedules/${scheduleId}/status`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ status: nextStatus })
@@ -92,7 +93,7 @@ const ManageSchedules = () => {
     const handleManageApps = async (scheduleId) => {
         setSelectedScheduleId(scheduleId);
         try {
-            const res = await fetch(`http://localhost:5000/api/appointments/schedule/${scheduleId}`);
+            const res = await fetch(`${API_BASE_URL}/api/appointments/schedule/${scheduleId}`);
             const data = await res.json();
             if (data.success) {
                 setAppointments(data.data);
@@ -106,7 +107,7 @@ const ManageSchedules = () => {
     const handleDeleteAppointment = async (appointmentId) => {
         if (!window.confirm('Are you sure you want to delete this appointment?')) return;
         try {
-            const res = await fetch(`http://localhost:5000/api/appointments/${appointmentId}`, {
+            const res = await fetch(`${API_BASE_URL}/api/appointments/${appointmentId}`, {
                 method: 'DELETE'
             });
             if (res.ok) {
