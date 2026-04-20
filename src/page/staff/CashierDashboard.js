@@ -55,8 +55,12 @@ const CashierDashboard = () => {
                 const response = await axios.get(`${API_BASE}/api/payment/all-transactions`, authHeaders());
                 const formattedData = response.data.map((item) => {
                     const pending = item.pending_refund_request;
-                    const hasPendingRefundRequest =
-                        pending === true || pending === 1 || pending === '1';
+                    const hasPendingRefundRequest = Boolean(
+                        pending === true ||
+                            pending === 1 ||
+                            pending === '1' ||
+                            (typeof pending === 'number' && pending > 0)
+                    );
                     return {
                         id: item.appointment_id,
                         orderId: item.transaction_id || 'N/A',

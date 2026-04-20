@@ -2,7 +2,8 @@ const fs = require('fs');
 const path = require('path');
 const mysql = require('mysql2');
 const dotenv = require('dotenv');
-dotenv.config();
+// Always load backend/.env regardless of CWD (root scripts vs backend scripts).
+dotenv.config({ path: path.join(__dirname, '..', '.env') });
 
 // SSL configuration for Aiven cloud database
 let sslConfig = false;

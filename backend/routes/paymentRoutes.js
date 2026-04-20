@@ -15,5 +15,6 @@ router.get('/all-transactions', verifyStaffToken, paymentController.getAllPaymen
 router.put('/update-status/:orderID', verifyStaffToken, paymentController.updatePaymentStatus);
 router.post('/refund/:orderID', verifyStaffToken, paymentController.processRefund);
 router.delete('/delete-old', verifyStaffToken, paymentController.deleteOldPayments);
+router.delete('/delete-sandbox', verifyStaffToken, paymentController.deleteSandboxPayments);
 
 module.exports = router;
