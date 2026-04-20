@@ -446,6 +446,69 @@
     background: #F8FAFC;
 }
 
+.cashier-patient-cell {
+    cursor: pointer;
+}
+
+.cashier-patient-cell:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.cashier-patient-details {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 6px 0 18px;
+}
+
+.cashier-patient-details-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 12px;
+    border: 1px solid #E2E8F0;
+    border-radius: 10px;
+    background: #F8FAFC;
+    align-items: center;
+}
+
+.cashier-patient-details-row .label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #64748B;
+    min-width: 56px;
+}
+
+.cashier-patient-details-row .value {
+    font-size: 13px;
+    font-weight: 600;
+    color: #0F172A;
+    text-align: right;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.cashier-copy-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid #CBD5E1;
+    border-radius: 10px;
+    padding: 7px 10px;
+    background: #FFFFFF;
+    color: #0F172A;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    max-width: 320px;
+}
+
+.cashier-copy-btn:hover {
+    background: #F1F5F9;
+}
+
 .cashier-table tbody td {
     padding: 12px 16px;
     font-size: 13px;

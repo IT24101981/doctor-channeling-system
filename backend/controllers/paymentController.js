@@ -154,7 +154,7 @@ async function sendPaymentResultEmail(internalOrderId, paymentStatus) {
             const text = buildReceiptEmailText(pdfData);
             const pdfBuffer = buildReceiptPdfBufferFromJsPDF(pdfData);
 
-            await sendMail({
+            const sendRes = await sendMail({
                 to: email,
                 subject,
                 html,
@@ -167,10 +167,41 @@ async function sendPaymentResultEmail(internalOrderId, paymentStatus) {
                     }
                 ]
             });
+            if (sendRes?.sent === true) {
+                try {
+                    await db.execute(
+                        `UPDATE payments
+                         SET receipt_email_sent_at = COALESCE(receipt_email_sent_at, CURRENT_TIMESTAMP)
+                         WHERE internal_order_id = ?
+                         LIMIT 1`,
+                        [internalOrderId]
+                    );
+                } catch (e) {
+                    // Column/table may not exist in some deployments; ignore.
+                    if (e?.code !== 'ER_BAD_FIELD_ERROR' && e?.code !== 'ER_NO_SUCH_TABLE') {
+                        console.warn('receipt_email_sent_at update failed:', e.message);
+                    }
+                }
+            }
         } else {
             const html = buildReceiptFailEmailHtml(pdfData);
             const text = buildReceiptFailEmailText(pdfData);
-            await sendMail({ to: email, subject, html, text });
+            const sendRes = await sendMail({ to: email, subject, html, text });
+            if (sendRes?.sent === true) {
+                try {
+                    await db.execute(
+                        `UPDATE payments
+                         SET receipt_email_sent_at = COALESCE(receipt_email_sent_at, CURRENT_TIMESTAMP)
+                         WHERE internal_order_id = ?
+                         LIMIT 1`,
+                        [internalOrderId]
+                    );
+                } catch (e) {
+                    if (e?.code !== 'ER_BAD_FIELD_ERROR' && e?.code !== 'ER_NO_SUCH_TABLE') {
+                        console.warn('receipt_email_sent_at update failed:', e.message);
+                    }
+                }
+            }
         }
     } catch (e) {
         console.error('sendPaymentResultEmail error:', e.message);
@@ -663,6 +694,8 @@ exports.getAllPaymentsForCashier = async (req, res) => {
             SELECT
                 p.appointment_id,
                 NULLIF(TRIM(CONCAT(COALESCE(pt.first_name, ''), ' ', COALESCE(pt.second_name, ''))), '') AS patient_name,
+                pt.email AS patient_email,
+                pt.phone AS patient_phone,
                 d.name AS doctor_name,
                 p.internal_order_id AS transaction_id,
                 p.payment_method,
@@ -680,6 +713,8 @@ exports.getAllPaymentsForCashier = async (req, res) => {
             SELECT
                 p.appointment_id,
                 NULLIF(TRIM(CONCAT(COALESCE(pt.first_name, ''), ' ', COALESCE(pt.second_name, ''))), '') AS patient_name,
+                pt.email AS patient_email,
+                pt.phone AS patient_phone,
                 d.name AS doctor_name,
                 p.internal_order_id AS transaction_id,
                 p.payment_method,

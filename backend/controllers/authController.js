@@ -352,12 +352,15 @@ exports.forgotPasswordRequest = async (req, res) => {
 
         const text = `Your NCC eCare password reset code is: ${otp}\n\nIt expires in 15 minutes. If you did not request this, you can ignore this email.`;
         try {
-            await sendMail({
+            const result = await sendMail({
                 to: canonicalEmail,
                 subject: 'Password reset verification code',
                 text,
                 html: `<p>Your NCC eCare password reset code is:</p><p style="font-size:24px;font-weight:700;letter-spacing:4px;">${otp}</p><p style="color:#64748b;font-size:14px;">It expires in 15 minutes. If you did not request this, you can ignore this email.</p>`
             });
+            if (!result || result.sent !== true) {
+                throw new Error('SMTP_NOT_CONFIGURED');
+            }
         } catch (mailErr) {
             console.error('Forgot password email error:', mailErr);
             await db.execute('DELETE FROM password_reset_otps WHERE LOWER(email) = LOWER(?)', [
