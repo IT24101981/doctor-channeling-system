@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { API_BASE_URL } from '../config';
 import './css/Signup.css';
 import ReCAPTCHA from "react-google-recaptcha";
 
@@ -97,7 +98,7 @@ const DoctorSignup = () => {
         try {
             // Updated payload structure
             // Note: Backend might need updates to handle these new fields
-            const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/auth/doctor/signup`, {
+            const response = await fetch(`${API_BASE_URL}/api/auth/doctor/signup`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

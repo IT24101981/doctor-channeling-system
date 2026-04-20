@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { API_BASE_URL } from '../../config';
 import ECareNavBar from '../../Components/eCareNavBar';
 import '../css/CreateSchedule.css';
 
@@ -34,7 +35,7 @@ const CreateSchedule = () => {
     useEffect(() => {
         const fetchDoctors = async () => {
             try {
-                const response = await fetch('http://localhost:5000/api/auth/doctors');
+                const response = await fetch(`${API_BASE_URL}/api/auth/doctors`);
                 const data = await response.json();
                 if (response.ok && data.doctors) {
                     setAllDoctors(data.doctors);
@@ -51,7 +52,7 @@ const CreateSchedule = () => {
 
         const fetchAvailability = async () => {
             try {
-                const response = await fetch('http://localhost:5000/api/availability/all');
+                const response = await fetch(`${API_BASE_URL}/api/availability/all`);
                 const data = await response.json();
                 if (response.ok) setAvailabilityList(data);
             } catch (error) {
@@ -103,7 +104,7 @@ const CreateSchedule = () => {
     const toggleMarked = async (e, slotId) => {
         e.stopPropagation();
         try {
-            const res = await fetch(`http://localhost:5000/api/availability/${slotId}/mark`, {
+            const res = await fetch(`${API_BASE_URL}/api/availability/${slotId}/mark`, {
                 method: 'PATCH'
             });
             if (res.ok) {
@@ -158,7 +159,7 @@ const CreateSchedule = () => {
         }
 
         try {
-            const response = await fetch('http://localhost:5000/api/schedules', {
+            const response = await fetch(`${API_BASE_URL}/api/schedules`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

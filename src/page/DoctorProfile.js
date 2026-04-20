@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import axios from 'axios';
+import { API_BASE_URL } from '../config';
 import ECareNavBar from '../Components/eCareNavBar';
 import './css/DoctorProfile.css';
 
@@ -65,7 +66,7 @@ const DoctorProfile = () => {
 
     const fetchDoctorDetails = async (id) => {
         try {
-            const response = await axios.get(`http://localhost:5000/api/auth/doctor/${id}`);
+            const response = await axios.get(`${API_BASE_URL}/api/auth/doctor/${id}`);
             setDoctorInfo(response.data);
             setFormData({
                 name: response.data.name || '',
@@ -112,7 +113,7 @@ const DoctorProfile = () => {
         }
 
         try {
-            await axios.put(`http://localhost:5000/api/auth/doctor/${doctorInfo.id}`, formData);
+            await axios.put(`${API_BASE_URL}/api/auth/doctor/${doctorInfo.id}`, formData);
             alert('Profile updated successfully!');
             setIsEditing(false);
             fetchDoctorDetails(doctorInfo.id);
@@ -130,7 +131,7 @@ const DoctorProfile = () => {
     const handleDeleteAccount = async () => {
         if (window.confirm('Are you ABSOLUTELY sure you want to delete your account? This action cannot be undone.')) {
             try {
-                await axios.delete(`http://localhost:5000/api/auth/doctor/${doctorInfo.id}`);
+                await axios.delete(`${API_BASE_URL}/api/auth/doctor/${doctorInfo.id}`);
                 alert('Account deleted successfully.');
                 localStorage.clear();
                 navigate('/');
