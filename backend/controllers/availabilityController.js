@@ -27,7 +27,7 @@ exports.getAvailability = async (req, res) => {
 exports.getAllAvailability = async (req, res) => {
     try {
         const [slots] = await db.execute(`
-            SELECT a.*, d.name AS doctor_name, d.specialization 
+            SELECT a.*, d.name AS doctor_name, d.specialization, d.consulting_fee
             FROM doc_availability_slots a
             JOIN doctors d ON a.doctor_id = d.id
             WHERE a.is_available = 1 AND d.status = 'approved'

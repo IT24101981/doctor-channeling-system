@@ -74,7 +74,7 @@ const CreateSchedule = () => {
         setFilteredDoctors(filtered);
 
         // Reset doctor selection
-        setFormData(prev => ({ ...prev, doctor_id: '' }));
+        setFormData(prev => ({ ...prev, doctor_id: '', price: '' }));
     };
 
     const handleChange = (e) => {
@@ -82,6 +82,17 @@ const CreateSchedule = () => {
             ...formData,
             [e.target.name]: e.target.value
         });
+    };
+
+    const handleDoctorChange = (e) => {
+        const docId = e.target.value;
+        const selectedDoc = allDoctors.find(doc => doc.id === parseInt(docId, 10));
+
+        setFormData(prev => ({
+            ...prev,
+            doctor_id: docId,
+            price: selectedDoc ? selectedDoc.consulting_fee : ''
+        }));
     };
 
     const handleTimeChange = (field, type, value) => {
@@ -127,7 +138,8 @@ const CreateSchedule = () => {
             doctor_id: slot.doctor_id,
             start_time: slot.start_time.substring(0, 5),
             end_time: slot.end_time.substring(0, 5),
-            max_patients: parsedMaxPatients || ''
+            max_patients: parsedMaxPatients || '',
+            price: slot.consulting_fee || ''
         }));
     };
 
@@ -227,6 +239,7 @@ const CreateSchedule = () => {
                                     <p><strong>{slot.specialization}</strong></p>
                                     <p>{slot.day_of_week} • {slot.start_time.substring(0, 5)} - {slot.end_time.substring(0, 5)}</p>
                                     <p>Capacity: {slot.capacity}</p>
+                                    <p>Price: Rs. {slot.consulting_fee}</p>
                                 </div>
                                 <div className="card-actions">
                                     <button
@@ -277,7 +290,7 @@ const CreateSchedule = () => {
                             <select
                                 name="doctor_id"
                                 value={formData.doctor_id}
-                                onChange={handleChange}
+                                onChange={handleDoctorChange}
                                 required
                                 disabled={!selectedSpecialization}
                             >
