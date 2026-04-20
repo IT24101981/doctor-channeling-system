@@ -43,9 +43,26 @@ async function sendViaResend(opts) {
     const apiKey = String(process.env.RESEND_API_KEY || '').trim();
     if (!apiKey) return { sent: false };
 
+    const normalizeFrom = (v) => {
+        let s = String(v || '').trim();
+        // Common Railway mistake: pasting "RESEND_FROM=Name <email@...>" as the *value*.
+        if (s.includes('=') && !s.includes('<') && !s.includes('>')) {
+            // leave as-is (could be a normal string containing '=')
+            return s;
+        }
+        if (s.startsWith('RESEND_FROM=')) {
+            s = s.slice('RESEND_FROM='.length).trim();
+        }
+        // Strip wrapping quotes if provided.
+        if ((s.startsWith('"') && s.endsWith('"')) || (s.startsWith("'") && s.endsWith("'"))) {
+            s = s.slice(1, -1).trim();
+        }
+        return s;
+    };
+
     const from =
-        String(process.env.RESEND_FROM || '').trim() ||
-        String(process.env.SMTP_FROM || process.env.SMTP_FROM_EMAIL || process.env.EMAIL_FROM || '').trim();
+        normalizeFrom(process.env.RESEND_FROM) ||
+        normalizeFrom(process.env.SMTP_FROM || process.env.SMTP_FROM_EMAIL || process.env.EMAIL_FROM || '');
     if (!from) {
         throw new Error('RESEND_FROM (or SMTP_FROM/EMAIL_FROM) is required when using Resend');
     }
