@@ -15,11 +15,24 @@ function getTransporter() {
     }
     const port = Number(process.env.SMTP_PORT || 587);
     const secure = String(process.env.SMTP_SECURE || '').toLowerCase() === 'true' || port === 465;
+    const forceIpv4 =
+        String(process.env.SMTP_FORCE_IPV4 || '').toLowerCase() === 'true' ||
+        (process.env.SMTP_FORCE_IPV4 === undefined &&
+            String(process.env.NODE_ENV || '').toLowerCase() === 'production');
+    const timeoutMs = Number(process.env.SMTP_TIMEOUT_MS || 20000);
     transporter = nodemailer.createTransport({
         host,
         port,
         secure,
-        auth: { user, pass }
+        auth: { user, pass },
+        ...(Number.isFinite(timeoutMs) && timeoutMs > 0
+            ? {
+                  connectionTimeout: timeoutMs,
+                  greetingTimeout: timeoutMs,
+                  socketTimeout: timeoutMs
+              }
+            : {}),
+        ...(forceIpv4 ? { family: 4 } : {})
     });
     return transporter;
 }
@@ -29,7 +42,11 @@ function getTransporter() {
  */
 async function sendMail(opts) {
     const t = getTransporter();
-    const from = process.env.SMTP_FROM || process.env.EMAIL_FROM || process.env.SMTP_USER;
+    const from =
+        process.env.SMTP_FROM ||
+        process.env.SMTP_FROM_EMAIL ||
+        process.env.EMAIL_FROM ||
+        process.env.SMTP_USER;
     if (!t || !from) {
         console.warn('[email] SMTP not configured; skipping send to', opts.to);
         return { sent: false };
