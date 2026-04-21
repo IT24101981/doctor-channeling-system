@@ -4,7 +4,7 @@ import { API_BASE_URL } from '../config';
 import { useNavigate } from 'react-router-dom';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
-import ECareNavBar from '../Components/eCareNavBar';
+import DoctorNavBar from '../Components/DoctorNavBar';
 import './css/doctorAppoinmentViwe.css';
 
 const DoctorAppointmentView = () => {
@@ -76,7 +76,7 @@ const DoctorAppointmentView = () => {
 
     return (
         <div className="doctor-appointments-page" ref={containerRef}>
-            <ECareNavBar />
+            <DoctorNavBar />
 
             <div className="appointments-container">
                 <div className="page-header">

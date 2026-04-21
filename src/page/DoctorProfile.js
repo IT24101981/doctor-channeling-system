@@ -4,7 +4,7 @@ import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import axios from 'axios';
 import { API_BASE_URL } from '../config';
-import ECareNavBar from '../Components/eCareNavBar';
+import DoctorNavBar from '../Components/DoctorNavBar';
 import './css/DoctorProfile.css';
 
 const DoctorProfile = () => {
@@ -154,7 +154,7 @@ const DoctorProfile = () => {
 
     return (
         <div className="doctor-profile-page" ref={containerRef}>
-            <ECareNavBar />
+            <DoctorNavBar />
             
             <div className="profile-dashboard">
                 <div className="profile-header">
