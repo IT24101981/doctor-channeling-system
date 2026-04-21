@@ -181,7 +181,13 @@ const ManageSchedules = () => {
 
             <div className="manage-schedules-container">
                 <div className="manage-header">
-                    <h2>Manage Doctor Schedules</h2>
+                    <button
+                        id="back-to-dashboard-btn"
+                        onClick={() => navigate('/ecare/staff/booking')}
+                    >
+                        ← Back to Dashboard
+                    </button>
+                    <h2>Manage Doctor Schedules 🗓️</h2>
                     <button
                         className="create-schedule-btn"
                         onClick={() => navigate('/schedules/create')}

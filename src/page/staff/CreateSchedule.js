@@ -260,7 +260,7 @@ const CreateSchedule = () => {
 
                 <div className="create-schedule-container">
                     <div className="create-schedule-header">
-                        <h2>Create Doctor Schedule</h2>
+                        <h2>Create Doctor Schedule </h2>
                         <p>Add new availability for doctors</p>
                     </div>
 
@@ -382,8 +382,8 @@ const CreateSchedule = () => {
                             />
                         </div>
 
-                        <button type="submit" className="submit-btn" style={{ width: '100%' }}>Create Schedule</button>
-                        <button type="button" className="submit-btn" style={{ background: '#6B7280', marginTop: '10px', width: '100%' }} onClick={() => navigate('/schedules/manage')}>Back to Dashboard</button>
+                        <button type="submit" className="submit-btn" style={{ width: '100%', fontSize: '22px' }}>+ Create Schedule</button>
+                        <button type="button" className="submit-btn" style={{ background: '#6B7280', marginTop: '10px', width: '100%', fontSize: '19px' }} onClick={() => navigate('/schedules/manage')}>← Back to Schedules Dashboard</button>
                     </form>
                 </div>
             </div>
