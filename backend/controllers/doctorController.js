@@ -9,10 +9,11 @@ exports.getDoctors = async (req, res) => {
         const whereClauses = ["d.status = 'approved'"];
 
         if (date && date.trim() !== '') {
-            query += ' JOIN doc_availability_slots s ON d.id = s.doctor_id';
-            whereClauses.push('s.day_of_week = DAYNAME(?)');
-            params.push(date);
-            whereClauses.push('s.is_available = 1');
+            // Patient-side date filter should match actual bookable schedules (not weekly day-of-week availability).
+            query += ' JOIN appointment_schedules sch ON sch.doctor_id = d.id';
+            whereClauses.push('sch.schedule_date = ?');
+            params.push(date.trim());
+            whereClauses.push("sch.status IN ('active','full')");
         }
 
         if (name && name.trim() !== '') {

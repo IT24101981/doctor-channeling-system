@@ -142,9 +142,13 @@ const DoctorSearchResults = () => {
             if (data.specialization) params.append('specialization', data.specialization);
             if (data.date) params.append('date', data.date);
 
+            const schedulesUrl = data.date
+                ? `${API_URL}/api/schedules/date/${encodeURIComponent(data.date)}`
+                : `${API_URL}/api/schedules`;
+
             const [docRes, schedRes] = await Promise.all([
                 fetch(`${API_URL}/api/auth/doctors?${params.toString()}`),
-                fetch(`${API_URL}/api/schedules`)
+                fetch(schedulesUrl)
             ]);
 
             const docData = await docRes.json();
