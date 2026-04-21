@@ -1,5 +1,6 @@
 const db = require('../config/db');
 const bcrypt = require('bcryptjs');
+const { sendMail } = require('../utils/emailSender');
 
 // Get all staff members
 exports.getAllStaff = async (req, res) => {
@@ -37,7 +38,54 @@ exports.createStaff = async (req, res) => {
             [username, hashedPassword, role, account_status || 'Active', phone_number || null, email || null]
         );
 
-        res.status(201).json({ message: 'Staff created successfully', id: result.insertId });
+        // If email is provided, send credentials to the staff member.
+        let emailSent = false;
+        let emailProvider = null;
+        if (email && String(email).trim() !== '') {
+            const baseUrl = (process.env.FRONTEND_URL || '').replace(/\/+$/, '');
+            const staffLoginUrl = baseUrl ? `${baseUrl}/ecare/staff-login` : null;
+
+            const subject = 'Your NCC eCare staff account credentials';
+            const text =
+                `Hello ${username},\n\n` +
+                `An NCC eCare staff account has been created for you.\n\n` +
+                `Username: ${username}\n` +
+                `Password: ${password}\n` +
+                `Role: ${role}\n` +
+                (staffLoginUrl ? `\nStaff login: ${staffLoginUrl}\n` : '') +
+                `\nFor security, please sign in and change your password as soon as possible.\n`;
+
+            try {
+                const result = await sendMail({
+                    to: String(email).trim(),
+                    subject,
+                    text,
+                    html:
+                        `<p>Hello <b>${username}</b>,</p>` +
+                        `<p>An NCC eCare staff account has been created for you.</p>` +
+                        `<p><b>Username:</b> ${username}<br>` +
+                        `<b>Password:</b> ${password}<br>` +
+                        `<b>Role:</b> ${role}</p>` +
+                        (staffLoginUrl
+                            ? `<p><b>Staff login:</b> <a href="Cick here to login">https://nccecare.vercel.app/eCare/staff-login</a></p>`
+                            : '') +
+                        `<p style="color:#64748b;font-size:14px;">For security, please sign in and change your password as soon as possible.</p>`
+                });
+                if (result && result.sent === true) {
+                    emailSent = true;
+                    emailProvider = result.provider || null;
+                }
+            } catch (err) {
+                console.error('Error sending staff credentials email:', err);
+            }
+        }
+
+        res.status(201).json({
+            message: 'Staff created successfully',
+            id: result.insertId,
+            emailSent,
+            ...(emailProvider ? { emailProvider } : {})
+        });
     } catch (error) {
         console.error('Error creating staff:', error);
         res.status(500).json({ message: 'Server error while creating staff' });
