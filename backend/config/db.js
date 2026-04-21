@@ -28,6 +28,9 @@ const poolConfig = {
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
     ssl: sslConfig,
+    // Prevent MySQL DATE columns from being converted to JS Date (timezone-shift bugs).
+    // Keep DATETIME/TIMESTAMP as Date objects for existing formatting utilities.
+    dateStrings: ['DATE'],
     enableKeepAlive: true,
     keepAliveInitialDelay: 10000,
     waitForConnections: true,
