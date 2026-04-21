@@ -501,7 +501,7 @@
 }
 
 .calendar-day-column {
-    min-width: 140px;
+    min-width: 160px;
     background: #F8FAFC;
     border-radius: 10px;
     padding: 12px;
@@ -565,23 +565,27 @@
     align-items: center;
     margin-bottom: 8px;
     font-weight: 600;
-    font-size: 12px;
+    font-size: 11px;
     color: #1E3A5F;
+    flex-wrap: wrap;
+    gap: 4px;
 }
 
 .slot-actions {
     display: flex;
     gap: 6px;
+    flex-shrink: 0;
 }
 
 .action-btn {
     background: none;
     border: none;
     cursor: pointer;
-    font-size: 14px;
-    padding: 2px 6px;
+    font-size: 12px;
+    padding: 1px 4px;
     border-radius: 4px;
     transition: all 0.2s;
+    line-height: 1;
 }
 
 .action-btn.edit {
