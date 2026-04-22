@@ -109,7 +109,6 @@ CREATE TABLE IF NOT EXISTS doc_availability_slots (
     capacity INT,
     is_available BOOLEAN DEFAULT true,
     slot_duration INT DEFAULT 10,
-    booked_count INT DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_doctor_slots FOREIGN KEY (doctor_id) REFERENCES doctors(id) ON DELETE SET NULL
 );
