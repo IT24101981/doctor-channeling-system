@@ -1,11 +1,14 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import ECareNavBar from '../../Components/eCareNavBar';
+import { useNavigate } from 'react-router-dom';
+import LogoHospital from '../../images/LogoHospital.png';
 import { formatMediumDateLK } from '../../utils/sriLankaTime';
 import '../css/CustomerSupport.css';
+import '../css/CashierDashboard.css';
 
 const API_URL = process.env.REACT_APP_API_URL;
 
 const HRCustomerSupport = () => {
+    const navigate = useNavigate();
     const [user] = useState(() => {
         const storedUser = localStorage.getItem('staffUser') || localStorage.getItem('user');
         return storedUser ? JSON.parse(storedUser) : null;
@@ -17,6 +20,13 @@ const HRCustomerSupport = () => {
     const [replyModal, setReplyModal] = useState({ show: false, ticketId: null, action: null });
     const [replyText, setReplyText] = useState('');
     const [categoryFilter, setCategoryFilter] = useState('All');
+
+    const [showPasswordModal, setShowPasswordModal] = useState(false);
+    const [newPassword, setNewPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [passwordErrors, setPasswordErrors] = useState({});
+    const [showNewPassword, setShowNewPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     const categories = useMemo(() => [
         "Appointments",
@@ -173,9 +183,114 @@ const HRCustomerSupport = () => {
 
     const formatDate = (dateString) => formatMediumDateLK(dateString);
 
+    const handleLogout = () => {
+        localStorage.clear();
+        navigate('/ecare/staff-login');
+    };
+
+    const handlePasswordModalClose = () => {
+        setShowPasswordModal(false);
+        setNewPassword('');
+        setConfirmPassword('');
+        setPasswordErrors({});
+        setShowNewPassword(false);
+        setShowConfirmPassword(false);
+    };
+
+    const pwdRules = {
+        length: newPassword.length >= 6,
+        lowercase: /[a-z]/.test(newPassword),
+        uppercase: /[A-Z]/.test(newPassword),
+        symbol: /[^a-zA-Z0-9]/.test(newPassword),
+    };
+    const pwdValid = Object.values(pwdRules).every(Boolean);
+
+    const handleChangePasswordSave = async () => {
+        const errs = {};
+        if (!pwdValid) errs.newPassword = 'Password does not meet all requirements.';
+        if (newPassword !== confirmPassword) errs.confirmPassword = 'Passwords do not match.';
+        if (Object.keys(errs).length > 0) {
+            setPasswordErrors(errs);
+            return;
+        }
+
+        setPasswordErrors({});
+        try {
+            const storedUser = JSON.parse(localStorage.getItem('staffUser') || '{}');
+            const username = storedUser.username;
+            if (!username) {
+                showNotification('Session expired. Please log in again.', 'error');
+                return;
+            }
+
+            const response = await fetch(`${API_URL}/api/auth/staff/change-password`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, newPassword }),
+            });
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok) {
+                const msg = data?.message || 'Failed to change password. Please try again.';
+                setPasswordErrors({ newPassword: msg });
+                return;
+            }
+
+            handlePasswordModalClose();
+            showNotification('Password changed successfully!');
+        } catch (error) {
+            console.error('Change password error:', error);
+            setPasswordErrors({ newPassword: 'Failed to change password. Please try again.' });
+        }
+    };
+
     return (
         <div className="cs-page">
-            <ECareNavBar />
+            <nav className="cashier-navbar">
+                <div className="cashier-navbar-brand">
+                    <div className="cashier-logo-icon">
+                        <img src={LogoHospital} alt="NCC Logo" />
+                    </div>
+                    <div className="cashier-brand-text">
+                        <span className="brand-name">NCC eCare</span>
+                        <span className="brand-tagline">HR Portal</span>
+                    </div>
+                </div>
+
+                <div className="cashier-navbar-actions">
+                    <div className="cashier-staff-badge">
+                        <span className="material-symbols-outlined">badge</span>
+                        <span>Role: <strong>HR</strong></span>
+                    </div>
+
+                    <button
+                        onClick={() => setShowPasswordModal(true)}
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            backgroundColor: '#1E3A5F',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '8px',
+                            padding: '8px 14px',
+                            cursor: 'pointer',
+                            fontWeight: '600',
+                            fontSize: '0.9rem',
+                            transition: 'background-color 0.2s ease'
+                        }}
+                        onMouseOver={(e) => { e.currentTarget.style.backgroundColor = '#162E4A'; }}
+                        onMouseOut={(e) => { e.currentTarget.style.backgroundColor = '#1E3A5F'; }}
+                    >
+                        <span className="material-symbols-outlined" style={{ fontSize: '1.1rem' }}>lock</span>
+                        Change Password
+                    </button>
+
+                    <button className="cashier-nav-btn btn-logout" onClick={handleLogout}>
+                        <span className="material-symbols-outlined">logout</span>
+                        Logout
+                    </button>
+                </div>
+            </nav>
             {notification && (
                 <div className={`cs-notification ${notification.type}`}>
                     <span>{notification.message}</span>
@@ -376,6 +491,124 @@ const HRCustomerSupport = () => {
                                 <button type="button" className="cs-btn-cancel" onClick={() => setReplyModal({ show: false, ticketId: null, action: null })}>Cancel</button>
                                 <button type="button" className="cs-btn-submit" onClick={submitStatusUpdate}>Submit & {replyModal.action}</button>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {showPasswordModal && (
+                <div className="cashier-modal-overlay" onClick={handlePasswordModalClose}>
+                    <div className="cashier-modal" onClick={e => e.stopPropagation()} style={{ minWidth: '380px', maxWidth: '460px' }}>
+                        <h3 style={{ marginTop: 0, color: '#1E3A5F' }}>Change Password</h3>
+
+                        <div style={{ marginBottom: '16px' }}>
+                            <label style={{ display: 'block', marginBottom: '6px', fontWeight: '600', color: '#374151', fontSize: '0.9rem' }}>New Password</label>
+                            <div style={{ position: 'relative' }}>
+                                <input
+                                    type={showNewPassword ? 'text' : 'password'}
+                                    value={newPassword}
+                                    onChange={e => setNewPassword(e.target.value)}
+                                    placeholder="Enter new password"
+                                    style={{
+                                        width: '100%',
+                                        padding: '10px 40px 10px 12px',
+                                        borderRadius: '8px',
+                                        border: passwordErrors.newPassword ? '1px solid #dc3545' : '1px solid #d1d5db',
+                                        outline: 'none',
+                                        fontSize: '0.95rem',
+                                        boxSizing: 'border-box'
+                                    }}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowNewPassword(!showNewPassword)}
+                                    style={{
+                                        position: 'absolute',
+                                        right: '10px',
+                                        top: '50%',
+                                        transform: 'translateY(-50%)',
+                                        background: 'none',
+                                        border: 'none',
+                                        color: '#1E3A5F',
+                                        fontSize: '0.82rem',
+                                        cursor: 'pointer',
+                                        fontWeight: '700'
+                                    }}
+                                >
+                                    {showNewPassword ? 'Hide' : 'Show'}
+                                </button>
+                            </div>
+                            {passwordErrors.newPassword && <p style={{ color: '#dc3545', fontSize: '12px', margin: '4px 0 0 2px' }}>{passwordErrors.newPassword}</p>}
+
+                            {newPassword.length > 0 && (
+                                <div style={{ marginTop: '10px', display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                                    {[
+                                        { key: 'length', label: 'At least 6 characters' },
+                                        { key: 'uppercase', label: 'At least one uppercase letter (A-Z)' },
+                                        { key: 'lowercase', label: 'At least one lowercase letter (a-z)' },
+                                        { key: 'symbol', label: 'At least one symbol (!@#$...)' },
+                                    ].map(({ key, label }) => (
+                                        <div
+                                            key={key}
+                                            style={{
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '7px',
+                                                fontSize: '12px',
+                                                color: pwdRules[key] ? '#16a34a' : '#6b7280'
+                                            }}
+                                        >
+                                            <span style={{ fontSize: '14px' }}>{pwdRules[key] ? '✅' : '⬜'}</span>
+                                            {label}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        <div style={{ marginBottom: '20px' }}>
+                            <label style={{ display: 'block', marginBottom: '6px', fontWeight: '600', color: '#374151', fontSize: '0.9rem' }}>Confirm Password</label>
+                            <div style={{ position: 'relative' }}>
+                                <input
+                                    type={showConfirmPassword ? 'text' : 'password'}
+                                    value={confirmPassword}
+                                    onChange={e => setConfirmPassword(e.target.value)}
+                                    placeholder="Confirm new password"
+                                    style={{
+                                        width: '100%',
+                                        padding: '10px 40px 10px 12px',
+                                        borderRadius: '8px',
+                                        border: passwordErrors.confirmPassword ? '1px solid #dc3545' : '1px solid #d1d5db',
+                                        outline: 'none',
+                                        fontSize: '0.95rem',
+                                        boxSizing: 'border-box'
+                                    }}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                    style={{
+                                        position: 'absolute',
+                                        right: '10px',
+                                        top: '50%',
+                                        transform: 'translateY(-50%)',
+                                        background: 'none',
+                                        border: 'none',
+                                        color: '#1E3A5F',
+                                        fontSize: '0.82rem',
+                                        cursor: 'pointer',
+                                        fontWeight: '700'
+                                    }}
+                                >
+                                    {showConfirmPassword ? 'Hide' : 'Show'}
+                                </button>
+                            </div>
+                            {passwordErrors.confirmPassword && <p style={{ color: '#dc3545', fontSize: '12px', margin: '4px 0 0 2px' }}>{passwordErrors.confirmPassword}</p>}
+                        </div>
+
+                        <div className="modal-actions">
+                            <button className="modal-btn cancel" onClick={handlePasswordModalClose}>Cancel</button>
+                            <button className="modal-btn confirm-primary" onClick={handleChangePasswordSave}>Save Password</button>
                         </div>
                     </div>
                 </div>
