@@ -54,8 +54,8 @@ exports.createSlot = async (req, res) => {
 
         const [result] = await db.execute(
             `INSERT INTO doc_availability_slots 
-            (doctor_id, day_of_week, start_time, end_time, capacity, is_available, slot_duration, booked_count) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, 0)`,
+            (doctor_id, day_of_week, start_time, end_time, capacity, is_available, slot_duration) 
+            VALUES (?, ?, ?, ?, ?, ?, ?)`,
             [doctor_id, day_of_week, start_time, end_time, capacity, is_available ? 1 : 0, slot_duration]
         );
 
@@ -93,12 +93,6 @@ exports.updateSlot = async (req, res) => {
 exports.deleteSlot = async (req, res) => {
     try {
         const slotId = req.params.id;
-
-        // Ensure no bookings exist
-        const [slots] = await db.execute('SELECT booked_count FROM doc_availability_slots WHERE id = ?', [slotId]);
-        if (slots.length > 0 && slots[0].booked_count > 0) {
-            return res.status(400).json({ message: 'Cannot delete slot with existing bookings' });
-        }
 
         await db.execute('DELETE FROM doc_availability_slots WHERE id = ?', [slotId]);
 
