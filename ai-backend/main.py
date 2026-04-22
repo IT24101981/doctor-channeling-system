@@ -1,27 +1,25 @@
-import joblib
-from fastapi import FastAPI, UploadFile, File
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-from google import genai
+import json
 import os
+
+import easyocr
+import fitz  # PyMuPDF for PDF handling
+import joblib  # for load the model
 import mysql.connector
 from dotenv import load_dotenv
+from fastapi import FastAPI, File, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
+from google import genai
 from prompts import REPORT_EXPLAIN_PROMPT
-import easyocr
-from typing import List
-import fitz  # PyMuPDF for PDF handling
-import io
-from PIL import Image
-import json
-import xgboost as xgb
+from pydantic import BaseModel
+from typing import List, Literal
 
-
-# easyocr downloads detection/recognition models on first run and prints a progress bar.
-# On some Windows terminals this can crash with UnicodeEncodeError, so keep it quiet.
-reader = easyocr.Reader(['en'], verbose=False)
 
 load_dotenv()
 
+reader = easyocr.Reader(["en"], verbose=False)
+
+
+# AI backend deployment (localhost)
 app = FastAPI(title="NCC eCare AI Backend", version="1.0.0")
 
 # CORS - Allow React frontend access
@@ -33,32 +31,34 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Configuration
+# Integrate Gemini
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 client = genai.Client(api_key=GEMINI_API_KEY)
 
-# Request Models
-class SymptomsRequest(BaseModel):
-    symptoms: str
 
+
+# Request model
 class ReportTextRequest(BaseModel):
     text: str
-    language: str = "English"
-    model: str = "Gemini 3.1 Flash Lite"
+    language: Literal["Sinhala", "Tamil", "English"]
+    model: str = "Gemini 2.5 Flash"
 
-# LLM Query Function - Gemini for Report Explanation
-def query_llm_for_report(report_text, language="English", model_name="Gemini 3.1 Flash Lite"):
-    """Send medical report text to Gemini LLM for simple explanation"""
+    
+
+# Gemini for report explanation
+def query_llm_for_report(report_text, language, model_name: str = "Gemini 3.1 Flash Lite"):
+    """Send medical report text to Gemini LLM for a simple explanation."""
     prompt = REPORT_EXPLAIN_PROMPT.format(report_text=report_text, language=language)
     
-    # Model mapping (Optimized for current API availability and quota)
+    # Model mapping
     model_map = {
-        "Gemini 3.1 Flash Lite": "models/gemini-2.5-flash",
+        "Gemini 2.5 Flash": "models/gemini-2.5-flash",
         "Gemma 4 26B": "models/gemma-4-26b-a4b-it",
-        "Gemma 3 27B": "models/gemma-3-27b-it"
+        "Gemma 3 27B": "models/gemma-3-27b-it",
+        "Gemini 3.1 Flash Lite": "models/gemini-3.1-flash-lite-preview"
     }
     
-    selected_model = model_map.get(model_name, "models/gemini-2.5-flash")
+    selected_model = model_map.get(model_name, "models/gemma-4-26b-a4b-it")
     
     try:
         response = client.models.generate_content(
@@ -68,9 +68,12 @@ def query_llm_for_report(report_text, language="English", model_name="Gemini 3.1
         return response.text
     except Exception as e:
         print(f"Error in Gemini request ({selected_model}): {e}")
-        raise e
+        raise
 
-# ENDPOINT 1: Medical Report Explainer (LLM)
+
+
+
+# Endpoint 1: medical report explainer (Google models)
 @app.post("/api/explain")
 async def explain_report(req: ReportTextRequest):
     try:
@@ -80,7 +83,10 @@ async def explain_report(req: ReportTextRequest):
         print(f"ERROR in explain: {e}")
         return {"success": False, "error": str(e)}
 
-# ENDPOINT 2: OCR
+
+
+
+# endpoint2: OCR
 @app.post("/api/ocr")
 async def ocr_extract(files: List[UploadFile] = File(...)):
     all_extracted_text = []
@@ -88,7 +94,7 @@ async def ocr_extract(files: List[UploadFile] = File(...)):
     for file in files:
         contents = await file.read()
         
-        if file.filename.lower().endswith('.pdf'):
+        if file.filename.lower().endswith(".pdf"):
             # Handle PDF
             try:
                 doc = fitz.open(stream=contents, filetype="pdf")
@@ -111,7 +117,11 @@ async def ocr_extract(files: List[UploadFile] = File(...)):
     
     return {"success": True, "text": combined_text}
 
-# ENDPOINT 3: Doctor Suggestion (from Database by specialization)
+
+
+
+# Doctor suggestion (DB)
+
 def get_db_connection():
     return mysql.connector.connect(
         host=os.getenv("DB_HOST"),
@@ -122,6 +132,10 @@ def get_db_connection():
         ssl_disabled=False
     )
 
+
+
+
+# suggest doctor according to predicted specialization
 @app.get("/api/suggest-doctor")
 async def suggest_doctor(specialization: str = "General"):
     try:
@@ -138,23 +152,18 @@ async def suggest_doctor(specialization: str = "General"):
     except Exception as e:
         return {"success": False, "error": str(e), "doctors": []}
 
-# Health Check Endpoint
-@app.get("/")
-async def health_check():
-    return {
-        "status": "running",
-        "service": "NCC eCare AI Backend",
-        "version": "1.0.0",
-        "endpoints": [
-            "POST /api/explain",
-            "POST /api/ocr",
-            "GET /api/suggest-doctor"
-        ]
-    }
 
-model = joblib.load("model/xgb_tuned.pkl")
 
-# Load model feature names to ensure correct order and preprocessing
+
+# ML model + feature engineering
+
+
+model = joblib.load("model/xgb_tuned.pkl") #load the model
+
+
+
+
+# load model features from json file
 try:
     with open("model_features.json", "r") as f:
         MODEL_FEATURES = json.load(f)
@@ -162,34 +171,131 @@ except Exception as e:
     print(f"Warning: Could not load model_features.json: {e}")
     MODEL_FEATURES = []
 
+
+
+
+# feature engineering support from pipeline feature engineering
+ENGINEERED_COLS = [
+    "symptom_count",
+    "sys_respiratory",
+    "sys_digestive",
+    "sys_pain",
+    "sys_neurological",
+    "sys_mental_health",
+    "sys_skin",
+    "sys_respiratory_count",
+    "sys_digestive_count",
+    "sys_pain_count",
+    "sys_neurological_count",
+    "sys_mental_health_count",
+    "sys_skin_count",
+]
+
+# body system groupings from pipeline feature engineering
+BODY_SYSTEMS = {
+
+    'respiratory': [
+        'cough', 'shortness of breath', 'breathing fast', 'difficulty breathing',
+        'nasal congestion', 'coryza', 'sneezing', 'sinus congestion', 'wheezing',
+        'congestion in chest', 'hemoptysis', 'coughing up sputum', 'apnea',
+        'hoarse voice', 'hurts to breath'
+    ],
+    'digestive': [
+        'nausea', 'vomiting', 'diarrhea', 'constipation', 'stomach bloating',
+        'heartburn', 'sharp abdominal pain', 'burning abdominal pain',
+        'lower abdominal pain', 'upper abdominal pain', 'blood in stool',
+        'changes in stool appearance', 'regurgitation', 'melena',
+        'difficulty in swallowing', 'regurgitation.1'
+    ],
+    'pain': [
+        'back pain', 'low back pain', 'joint pain', 'muscle pain', 'headache',
+        'chest tightness', 'sharp chest pain', 'burning chest pain', 'leg pain',
+        'arm pain', 'neck pain', 'knee pain', 'shoulder pain', 'hip pain',
+        'ankle pain', 'foot or toe pain', 'wrist pain', 'elbow pain',
+        'hand or finger pain'
+    ],
+    'neurological': [
+        'dizziness', 'fainting', 'seizures', 'loss of sensation', 'paresthesia',
+        'focal weakness', 'disturbance of memory', 'difficulty speaking',
+        'double vision', 'abnormal involuntary movements', 'problems with movement'
+    ],
+    'mental_health': [
+        'anxiety and nervousness', 'depression', 'insomnia',
+        'depressive or psychotic symptoms', 'delusions or hallucinations',
+        'obsessions and compulsions', 'fears and phobias', 'low self-esteem',
+        'excessive anger', 'hostile behavior', 'temper problems',
+        'hysterical behavior', 'restlessness', 'antisocial behavior'
+    ],
+    'skin': [
+        'skin rash', 'itching of skin', 'skin swelling', 'abnormal appearing skin',
+        'skin lesion', 'skin dryness', 'skin growth', 'skin moles',
+        'skin irritation', 'peeling', 'warts', 'acne or pimples', 'jaundice', 'scaliness'
+    ]
+}
+
+# convert input data to float. (0.0 or 1.0)
+def _as_float01(value):
+
+    try:
+        numeric = float(value)
+        if numeric == 1.0:
+            return 1.0
+        else:
+            return 0.0
+
+    except Exception:
+        return 0.0
+
+
+# calculate engineered features (used for feature engineering)
 def calculate_engineered_features(symptoms_dict):
-    """Calculate system-specific counts and indicators for the XGBoost model"""
-    # Define keywords for different body systems
-    systems = {
-        "respiratory": ['breathing', 'cough', 'lung', 'shortness', 'wheezing', 'congestion', 'sore throat', 'sneezing', 'apnea', 'nose', 'coryza', 'sputum', 'pneumonia'],
-        "digestive": ['abdominal', 'stomach', 'constipation', 'diarrhea', 'nausea', 'vomiting', 'heartburn', 'flatulence', 'stool', 'mouth', 'tongue', 'gastric', 'rectal', 'bowel'],
-        "pain": ['pain', 'ache', 'cramps', 'stiffness', 'soreness', 'hurts', 'burning', 'sharp'],
-        "neurological": ['weakness', 'numbness', 'memory', 'dizziness', 'fainting', 'seizures', 'slurring', 'movement', 'balance', 'paresthesia', 'loss of sensation', 'disturbance'],
-        "mental_health": ['anxiety', 'depression', 'hallucinations', 'delusions', 'anger', 'mood', 'behavior', 'phobias', 'memories', 'obsessions', 'hostile', 'stress'],
-        "skin": ['skin', 'rash', 'itching', 'lesion', 'moles', 'eyelid', 'scalp', 'nails', 'peeling', 'dryness', 'pigmentation', 'scab', 'wart']
+    """
+    Feature engineering (notebook-aligned):
+    - symptom_count = total selected symptoms
+    - sys_* flags + sys_*_count = body system coverage
+    """
+    # identify raw symptom features
+    symptom_features = []
+    for f in MODEL_FEATURES:
+        if f in ENGINEERED_COLS:
+            continue
+        if f in symptoms_dict:
+            symptom_features.append(f)
+
+    # calculate symptom count
+    symptom_count = 0.0
+    for f in symptom_features:
+        symptom_value = symptoms_dict.get(f, 0.0)
+        symptom_count += _as_float01(symptom_value)
+
+    # create engineered features dictionary
+    engineered = {
+        "symptom_count": float(symptom_count),
     }
 
-    results = {}
-    total_count = sum(1 for k, v in symptoms_dict.items() if v == 1 and k != 'symptom_count')
-    results["symptom_count"] = total_count
-    
-    # We don't have the exact weights for rarity and tfidf, so we use defaults
-    results["rarity_score"] = 0.0
-    results["tfidf_score"] = 0.0
+    # check the engineering features
+    for sys_name, symptoms in BODY_SYSTEMS.items():
+        count = 0
+        for s in symptoms:
+            selected = _as_float01(symptoms_dict.get(s, 0.0))
+            if selected == 1.0:
+                count += 1
+            else:
+                count += 0
 
-    for sys_name, keywords in systems.items():
-        count = sum(1 for k, v in symptoms_dict.items() if v == 1 and any(kw in k.lower() for kw in keywords))
-        results[f"sys_{sys_name}"] = 1 if count > 0 else 0
-        results[f"sys_{sys_name}_count"] = count
+        if count > 0:
+            engineered[f"sys_{sys_name}"] = 1.0
+        else:
+            engineered[f"sys_{sys_name}"] = 0.0
+        engineered[f"sys_{sys_name}_count"] = float(count)
 
-    return results
+    return engineered
 
-# රෝග ලැයිස්තුව (Mapping Dictionary)
+
+# Disease mapping + specialist mapping
+
+
+# disease map
 disease_map = {
     0: "actinic keratosis",
     1: "acute bronchiolitis",
@@ -364,7 +470,7 @@ def get_specialist_mapping(disease_name):
 
     disease = disease_name.lower().strip()
 
-    # 1. චර්ම රෝග විශේෂඥ (Dermatologist)
+    # dermatologist mapping
     dermatology = [
         "actinic keratosis", "allergic contact dermatitis", "blepharitis", "chalazion", "contact dermatitis",
         "cornea infection", "corneal disorder", "diaper rash", "eczema", "fungal infection of the hair",
@@ -373,19 +479,19 @@ def get_specialist_mapping(disease_name):
         "seborrheic keratosis", "skin cancer", "skin disorder", "skin pigmentation disorder", "skin polyp", "stye"
     ]
 
-    # 2. හෘද රෝග විශේෂඥ (Cardiologist)
+    # cardiologist mapping
     cardiology = [
         "angina", "heart attack", "heart failure", "hypertensive heart disease", "ischemic heart disease",
         "paroxysmal ventricular tachycardia", "sinus bradycardia"
     ]
 
-    # 3. ස්නායු රෝග විශේෂඥ (Neurologist)
+    # neurologist mapping
     neurology = [
         "bell palsy", "brachial neuritis", "carpal tunnel syndrome", "concussion", "mononeuritis",
         "multiple sclerosis", "neuralgia", "peripheral nerve disorder", "sciatica", "transient ischemic attack"
     ]
 
-    # 4. ශ්වසන රෝග විශේෂඥ (Pulmonologist / ENT)
+    # pulmonologist / ENT mapping
     respiratory_ent = [
         "acute bronchiolitis", "acute bronchitis", "acute bronchospasm", "acute otitis media", "acute sinusitis",
         "asthma", "chronic obstructive pulmonary disease (copd)", "chronic otitis media", "chronic sinusitis",
@@ -394,14 +500,14 @@ def get_specialist_mapping(disease_name):
         "pneumonia", "pulmonary embolism", "seasonal allergies (hay fever)", "sinusitis", "strep throat"
     ]
 
-    # 5. ආමාශ සහ බඩවැල් පිළිබඳ විශේෂඥ (Gastroenterologist)
+    # gastroenterologist mapping
     gastroenterology = [
         "appendicitis", "cholecystitis", "chronic constipation", "diverticulitis", "diverticulosis", "esophagitis",
         "gastritis", "gastroduodenal ulcer", "gastrointestinal hemorrhage", "hemorrhoids", "hiatal hernia",
         "infectious gastroenteritis", "liver disease", "noninfectious gastroenteritis", "rectal disorder"
     ]
 
-    # 6. අස්ථි සහ සන්ධි විශේෂඥ (Orthopedician)
+    # orthopedician mapping
     orthopedics = [
         "arthritis of the hip", "bursitis", "chronic back pain", "degenerative disc disease", "fibromyalgia",
         "fracture of the leg", "fracture of the rib", "ganglion cyst", "herniated disk", "injury to the arm",
@@ -409,21 +515,21 @@ def get_specialist_mapping(disease_name):
         "spinal stenosis", "spondylolisthesis", "spondylosis", "sprain or strain", "tendinitis"
     ]
 
-    # 7. මනෝ වෛද්‍ය (Psychiatrist / Psychologist)
+    # psychiatrist / psychologist mapping
     psychiatry = [
         "acute stress reaction", "anxiety", "bipolar disorder", "chronic pain disorder", "conduct disorder",
         "depression", "marijuana abuse", "neurosis", "panic disorder", "personality disorder", "psychotic disorder",
         "schizophrenia", "smoking or tobacco addiction"
     ]
 
-    # 8. වකුගඩු සහ මුත්‍රාවාහිනී විශේෂඥ (Urologist / Nephrologist)
+    # urologist / nephrologist mapping
     urology = [
         "acute kidney injury", "benign prostatic hyperplasia (bph)", "cystitis", "kidney stone", "prostatitis",
         "pyelonephritis", "temporary or benign blood in urine", "urinary tract infection", "urinary tract obstruction",
         "varicocele of the testicles"
     ]
 
-    # 9. ස්ත්‍රී රෝග විශේෂඥ (Gynecologist)
+    # gynecologist mapping
     gynecology = [
         "benign vaginal discharge (leukorrhea)", "hyperemesis gravidarum", "idiopathic excessive menstruation",
         "idiopathic irregular menstrual cycle", "idiopathic painful menstruation", "pelvic inflammatory disease",
@@ -431,52 +537,75 @@ def get_specialist_mapping(disease_name):
         "vulvodynia"
     ]
 
-    # 10. අක්ෂි රෝග විශේෂඥ (Ophthalmologist)
+    # ophthalmologist mapping
     ophthalmology = [
         "chronic glaucoma", "conjunctivitis", "conjunctivitis due to allergy", "conjunctivitis due to virus",
         "dry eye of unknown cause", "macular degeneration"
     ]
 
-    # 11. දන්ත වෛද්‍ය (Dentist)
+    # dentist mapping
     dentistry = [
         "dental caries", "gum disease", "tooth abscess", "tooth disorder"
     ]
 
-    # 12. හෝර්මෝන සහ දියවැඩියා විශේෂඥ (Endocrinologist)
+    # endocrinologist mapping
     endocrinology = [
         "diabetic ketoacidosis", "hypoglycemia"
     ]
 
-    # 13. හදිසි ප්‍රතිකාර (Emergency Physician)
+    # emergency physician mapping
     emergency = [
         "sepsis", "sickle cell crisis", "pain after an operation"
     ]
 
-    # කාණ්ඩ පරීක්ෂා කර විශේෂඥයා ලබා දීම
-    if disease in dermatology: return "Dermatologist"
-    if disease in cardiology: return "Cardiologist"
-    if disease in neurology: return "Neurologist"
-    if disease in respiratory_ent: return "ENT Specialist / Pulmonologist"
-    if disease in gastroenterology: return "Gastroenterologist"
-    if disease in orthopedics: return "Orthopedic Surgeon"
-    if disease in psychiatry: return "Psychiatrist"
-    if disease in urology: return "Urologist"
-    if disease in gynecology: return "Gynecologist"
-    if disease in ophthalmology: return "Ophthalmologist"
-    if disease in dentistry: return "Dentist"
-    if disease in endocrinology: return "Endocrinologist"
-    if disease in emergency: return "Emergency Care Physician"
+    # mapping disease to specialist
+    if disease in dermatology:
+        return "Dermatologist"
+    elif disease in cardiology:
+        return "Cardiologist"
+    elif disease in neurology:
+        return "Neurologist"
+    elif disease in respiratory_ent:
+        return "ENT Specialist / Pulmonologist"
+    elif disease in gastroenterology:
+        return "Gastroenterologist"
+    elif disease in orthopedics:
+        return "Orthopedic Surgeon"
+    elif disease in psychiatry:
+        return "Psychiatrist"
+    elif disease in urology:
+        return "Urologist"
+    elif disease in gynecology:
+        return "Gynecologist"
+    elif disease in ophthalmology:
+        return "Ophthalmologist"
+    elif disease in dentistry:
+        return "Dentist"
+    elif disease in endocrinology:
+        return "Endocrinologist"
+    elif disease in emergency:
+        return "Emergency Care Physician"
 
-    # කිසිවක් නොගැලපේ නම් සාමාන්‍ය වෛද්‍යවරයා වෙත යොමු කිරීම
+    # default to general physician
     return "General Physician"
 
+
+
+
+
+
+
 @app.post("/api/predict")
+
+
+
 def predict(data: dict):
+
+
     try:
-        # 1. Calculate engineered features from incoming data
         engineered = calculate_engineered_features(data)
-        
-        # 2. Construct feature vector in the EXACT order the model expects (268 features)
+
+        # Construct feature vector in the EXACT order the model expects
         feature_vector = []
         for feature_name in MODEL_FEATURES:
             if feature_name in data:
@@ -487,7 +616,7 @@ def predict(data: dict):
                 # Default to 0 if feature is missing
                 feature_vector.append(0.0)
         
-        # 3. Perform prediction
+        # Perform prediction
         features = [feature_vector]
         prediction_label = int(model.predict(features)[0])
         
@@ -515,3 +644,20 @@ def predict(data: dict):
         import traceback
         traceback.print_exc()
         return {"success": False, "error": str(e)}
+
+
+
+
+# Health Check Endpoint
+@app.get("/")
+async def health_check():
+    return {
+        "status": "running",
+        "service": "NCC eCare AI Backend",
+        "version": "1.0.0",
+        "endpoints": [
+            "POST /api/explain",
+            "POST /api/ocr",
+            "GET /api/suggest-doctor"
+        ]
+    }
