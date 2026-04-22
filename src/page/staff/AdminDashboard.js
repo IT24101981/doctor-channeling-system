@@ -53,15 +53,16 @@ const AdminDashboard = () => {
         const upper = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
         const lower = 'abcdefghjkmnpqrstuvwxyz';
         const nums  = '23456789';
-        const all   = upper + lower + nums;
+        const syms  = '!@#$%^&*';
+        const all   = upper + lower + nums + syms;
         // Guarantee at least one of each character class
         let pwd = [
             upper[Math.floor(Math.random() * upper.length)],
+            lower[Math.floor(Math.random() * lower.length)],
+            nums[Math.floor(Math.random() * nums.length)],
+            syms[Math.floor(Math.random() * syms.length)],
             upper[Math.floor(Math.random() * upper.length)],
             lower[Math.floor(Math.random() * lower.length)],
-            lower[Math.floor(Math.random() * lower.length)],
-            nums[Math.floor(Math.random() * nums.length)],
-            nums[Math.floor(Math.random() * nums.length)],
         ];
         // Fill remaining characters
         for (let i = pwd.length; i < 10; i++) {
@@ -86,14 +87,32 @@ const AdminDashboard = () => {
     const [showNewPassword, setShowNewPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+    // Dynamic password rules check for Admin
+    const adminPwdRules = {
+        length:    newPassword.length >= 6,
+        lowercase: /[a-z]/.test(newPassword),
+        uppercase: /[A-Z]/.test(newPassword),
+        symbol:    /[^a-zA-Z0-9]/.test(newPassword),
+    };
+    const isAdminPwdValid = Object.values(adminPwdRules).every(Boolean);
+
+    // Dynamic password rules check for Staff (Add mode)
+    const staffPwdRules = {
+        length:    staffFormData.password.length >= 6,
+        lowercase: /[a-z]/.test(staffFormData.password),
+        uppercase: /[A-Z]/.test(staffFormData.password),
+        symbol:    /[^a-zA-Z0-9]/.test(staffFormData.password),
+    };
+    const isStaffPwdValid = Object.values(staffPwdRules).every(Boolean);
+
     const handleChangePasswordSave = async () => {
         // Client-side validation first
         const newErrors = {};
-        if (newPassword.length < 6) {
-            newErrors.newPassword = "Password must be at least 6 characters";
+        if (!isAdminPwdValid) {
+            newErrors.newPassword = "Password does not meet all requirements.";
         }
         if (newPassword !== confirmPassword) {
-            newErrors.confirmPassword = "Passwords do not match";
+            newErrors.confirmPassword = "Passwords do not match.";
         }
         if (Object.keys(newErrors).length > 0) {
             setErrors(newErrors);
@@ -352,11 +371,11 @@ const AdminDashboard = () => {
             errors.phone = 'Please enter valid phone number';
         }
 
-        // Password validation: required for new staff, min 6 chars if provided
+        // Password validation: required for new staff, must meet complexity rules if provided
         if (!editingStaffId && !staffFormData.password) {
-            errors.password = 'Password must be at least 6 characters';
-        } else if (staffFormData.password && staffFormData.password.length < 6) {
-            errors.password = 'Password must be at least 6 characters';
+            errors.password = 'Password is required';
+        } else if (staffFormData.password && !isStaffPwdValid) {
+            errors.password = 'Password does not meet requirements';
         }
 
         if (Object.keys(errors).length > 0) {
@@ -966,20 +985,20 @@ const AdminDashboard = () => {
                 >
                     <div
                         style={{
-                            width: '320px',
-                            padding: '20px',
+                            width: '380px',
+                            padding: '25px',
                             backgroundColor: 'white',
                             borderRadius: '12px',
-                            boxShadow: '0 8px 20px rgba(0,0,0,0.15)'
+                            boxShadow: '0 8px 30px rgba(0,0,0,0.18)'
                         }}
                     >
                         {/* Modal Title */}
-                        <h3 style={{ margin: '0 0 20px 0', color: '#1E3A5F', fontSize: '1.2rem', fontWeight: '700', textAlign: 'center' }}>
+                        <h3 style={{ margin: '0 0 20px 0', color: '#1E3A5F', fontSize: '1.3rem', fontWeight: '700', textAlign: 'left' }}>
                             Change Password
                         </h3>
 
                         {/* New Password */}
-                        <div style={{ marginBottom: '14px' }}>
+                        <div style={{ marginBottom: '16px' }}>
                             <div style={{ position: 'relative' }}>
                                 <input
                                     type={showNewPassword ? 'text' : 'password'}
@@ -991,23 +1010,21 @@ const AdminDashboard = () => {
                                     }}
                                     style={{
                                         width: '100%',
-                                        padding: '10px 40px 10px 10px',
+                                        padding: '12px 40px 12px 12px',
                                         borderRadius: '8px',
-                                        border: errors.newPassword ? '1px solid #ef4444' : '1px solid #ccc',
+                                        border: errors.newPassword ? '1px solid #ef4444' : '1px solid #d1d5db',
                                         outline: 'none',
                                         fontSize: '0.95rem',
                                         boxSizing: 'border-box',
                                         transition: 'border-color 0.2s'
                                     }}
-                                    onFocus={(e) => { if (!errors.newPassword) e.target.style.borderColor = '#1E3A5F'; }}
-                                    onBlur={(e) => { if (!errors.newPassword) e.target.style.borderColor = '#ccc'; }}
                                 />
                                 <button
                                     type="button"
                                     onClick={() => setShowNewPassword(v => !v)}
-                                    style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280', display: 'flex', alignItems: 'center', padding: 0 }}
+                                    style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#1E3A5F', display: 'flex', alignItems: 'center', padding: 0 }}
                                 >
-                                    <span className="material-symbols-outlined" style={{ fontSize: '1.1rem' }}>
+                                    <span className="material-symbols-outlined" style={{ fontSize: '1.2rem' }}>
                                         {showNewPassword ? 'visibility_off' : 'visibility'}
                                     </span>
                                 </button>
@@ -1015,6 +1032,21 @@ const AdminDashboard = () => {
                             {errors.newPassword && (
                                 <p style={{ color: '#ef4444', fontSize: '12px', margin: '4px 0 0 2px' }}>{errors.newPassword}</p>
                             )}
+                        </div>
+
+                        {/* Live requirement checklist for Admin */}
+                        <div style={{ marginBottom: '20px', display: 'flex', flexDirection: 'column', gap: '8px', padding: '14px', backgroundColor: '#f8fafc', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                            {[
+                                { key: 'length',    label: 'At least 6 characters' },
+                                { key: 'uppercase', label: 'At least one uppercase letter (A-Z)' },
+                                { key: 'lowercase', label: 'At least one lowercase letter (a-z)' },
+                                { key: 'symbol',    label: 'At least one symbol (!@#$...)' },
+                            ].map(({ key, label }) => (
+                                <div key={key} style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '13px', color: adminPwdRules[key] ? '#16a34a' : '#64748b', fontWeight: '500' }}>
+                                    <span style={{ fontSize: '16px' }}>{adminPwdRules[key] ? '✅' : '⬜'}</span>
+                                    {label}
+                                </div>
+                            ))}
                         </div>
 
                         {/* Confirm Password */}
@@ -1030,23 +1062,21 @@ const AdminDashboard = () => {
                                     }}
                                     style={{
                                         width: '100%',
-                                        padding: '10px 40px 10px 10px',
+                                        padding: '12px 40px 12px 12px',
                                         borderRadius: '8px',
-                                        border: errors.confirmPassword ? '1px solid #ef4444' : '1px solid #ccc',
+                                        border: errors.confirmPassword ? '1px solid #ef4444' : '1px solid #d1d5db',
                                         outline: 'none',
                                         fontSize: '0.95rem',
                                         boxSizing: 'border-box',
                                         transition: 'border-color 0.2s'
                                     }}
-                                    onFocus={(e) => { if (!errors.confirmPassword) e.target.style.borderColor = '#1E3A5F'; }}
-                                    onBlur={(e) => { if (!errors.confirmPassword) e.target.style.borderColor = '#ccc'; }}
                                 />
                                 <button
                                     type="button"
                                     onClick={() => setShowConfirmPassword(v => !v)}
-                                    style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280', display: 'flex', alignItems: 'center', padding: 0 }}
+                                    style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#1E3A5F', display: 'flex', alignItems: 'center', padding: 0 }}
                                 >
-                                    <span className="material-symbols-outlined" style={{ fontSize: '1.1rem' }}>
+                                    <span className="material-symbols-outlined" style={{ fontSize: '1.2rem' }}>
                                         {showConfirmPassword ? 'visibility_off' : 'visibility'}
                                     </span>
                                 </button>
