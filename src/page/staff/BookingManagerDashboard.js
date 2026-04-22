@@ -6,11 +6,6 @@ import ECareNavBar from '../../Components/eCareNavBar';
 const BookingManagerDashboard = () => {
     const navigate = useNavigate();
 
-    const handleLogout = () => {
-        localStorage.clear();
-        navigate('/ecare/staff-login');
-    };
-
     return (
         <div className="staff-dashboard" style={{ backgroundColor: '#cedee7' }}>
             <ECareNavBar />
