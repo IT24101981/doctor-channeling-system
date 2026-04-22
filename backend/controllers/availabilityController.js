@@ -77,7 +77,7 @@ exports.updateSlot = async (req, res) => {
 
         await db.execute(
             `UPDATE doc_availability_slots 
-            SET day_of_week = ?, start_time = ?, end_time = ?, capacity = ?, is_available = ?, slot_duration = ?
+            SET day_of_week = ?, start_time = ?, end_time = ?, capacity = ?, is_available = ?, slot_duration = ?, Marked = 0
             WHERE id = ?`,
             [day_of_week, start_time, end_time, capacity, is_available ? 1 : 0, slot_duration, slotId]
         );
