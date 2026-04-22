@@ -1,70 +1,271 @@
-# Getting Started with Create React App
+# NCC eCare Platform
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+<!-- Project Logo (replace with your logo) -->
+<!-- ![NCC eCare Platform Logo](./docs/assets/logo.png) -->
 
-## Available Scripts
+[![Build](https://img.shields.io/badge/Build-Passing-brightgreen)](./)
+[![Version](https://img.shields.io/badge/Version-1.0.0-blue)](./)
+[![React](https://img.shields.io/badge/Frontend-React-61DAFB?logo=react&logoColor=000)](./)
+[![Node.js](https://img.shields.io/badge/Backend-Node.js-339933?logo=node.js&logoColor=fff)](./)
+[![Express](https://img.shields.io/badge/API-Express-000000?logo=express&logoColor=fff)](./)
+[![FastAPI](https://img.shields.io/badge/AI%20API-FastAPI-009688?logo=fastapi&logoColor=fff)](./)
+[![MySQL](https://img.shields.io/badge/Database-MySQL-4479A1?logo=mysql&logoColor=fff)](./)
+[![Python](https://img.shields.io/badge/AI%2FML-Python-3776AB?logo=python&logoColor=fff)](./)
 
-In the project directory, you can run:
+**NCC eCare Platform** is a client-based **Smart e-Channeling & Health Literacy Platform** built for **Narammala Channel Centre**. It streamlines appointment booking, patient/doctor workflows, and payments—while enhancing patient understanding via AI-powered medical report explanations.
 
-### `npm start`
+- **Live URL**: `https://nccecare.vercel.app`
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+---
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## Introduction (Problem Statement)
 
-### `npm test`
+Rural patients often face avoidable barriers when seeking timely medical care—such as long travel distances, repeated visits to confirm doctor availability, and delays in understanding medical reports due to complex clinical terminology.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+**NCC eCare Platform** addresses these issues by providing:
 
-### `npm run build`
+- **Real-time e-channeling** (availability, booking, confirmations)
+- **Digitized patient & doctor management**
+- **Integrated payments** to reduce on-site friction
+- **AI-assisted health literacy** so patients can understand medical reports and make informed next steps
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+---
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## Core Features
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### Patient Management
+- **Patient profiles**: Centralized demographic + contact details
+- **Appointment history**: Past and upcoming appointments, status tracking
 
-### `npm run eject`
+### Doctor Management
+- **Schedule management**: Availability windows, session times, channeling limits
+- **Roster updates**: Staff-controlled roster changes and announcements
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+### Appointment Management
+- **Real-time scheduling**: View live availability per doctor/specialty
+- **Booking flow**: Create, reschedule, and manage appointments with confirmations
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+### Payment Management
+- **PayHere integration**: Online payments for channeling and related service fees
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+### Admin / Staff Management
+- **System monitoring**: Operational visibility for admins (activity, bookings, payments)
+- **Staff control**: Manage staff roles and permissions (as per system policy)
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+### Customer Support
+- **Ticket-based support**: Issue reporting, tracking, and resolution workflow for patients/staff
 
-## Learn More
+### Security
+- **Google reCAPTCHA**: Bot mitigation on sensitive/public-facing forms
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+---
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## AI/ML Highlights (AIML Features)
 
-### Code Splitting
+### Disease Prediction & Specialist Suggestion
+An ML model trained on symptom inputs predicts probable disease categories and suggests the most relevant **medical department / specialist path**, improving triage and reducing unnecessary referrals.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+- **Dataset**: Kaggle **Healthcare Symptoms–Disease Dataset** (used as the foundation for symptom-to-disease learning and evaluation)
+- **Outcome**: Faster guidance from symptoms → department suggestion
 
-### Analyzing the Bundle Size
+### Medical Report Explainer (OCR + LLM)
+Patients often receive reports containing abbreviations and medical jargon. This module makes reports understandable via:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+- **EasyOCR**: Extracts text from uploaded medical report images/PDF scans
+- **FastAPI (AI service)**: Serves AI endpoints for OCR + explanation
+- **LLM layer (Gemini / Hugging Face)**: Converts clinical terms into patient-friendly explanations and summaries (the repo currently integrates **Gemini**; Hugging Face **Llama** can be swapped in as an alternative inference provider)
 
-### Making a Progressive Web App
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+## Tech Stack
 
-### Advanced Configuration
+| Layer | Technologies |
+|------|--------------|
+| **Frontend** | React.js |
+| **Backend** | Node.js, Express.js |
+| **AI Backend** | FastAPI (Python) |
+| **Database** | MySQL (Aiven) |
+| **AI/ML** | EasyOCR, Gemini (LLM) / Hugging Face (Llama), Python |
+| **Payments** | PayHere |
+| **Security** | Google reCAPTCHA |
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+---
 
-### Deployment
+## System Architecture
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+### How services interact
 
-### `npm run build` fails to minify
+- **React (Web Client)**: UI for patients, doctors, and staff/admin
+- **Node.js/Express API**: Core business logic (appointments, users, payments, support tickets) + MySQL access
+- **FastAPI AI Service**: Dedicated AI/ML endpoints (prediction, OCR, report explanations)
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+### Architecture diagram (Mermaid)
+
+```mermaid
+flowchart LR
+  U[User (Patient/Doctor/Admin)] -->|Browser| FE[React Web App]
+
+  FE -->|REST/HTTPS| BE[Node.js + Express API]
+  BE -->|SQL| DB[(Aiven MySQL)]
+
+  FE -->|AI requests (REST/HTTPS)| AI[FastAPI AI Service]
+  AI -->|OCR| OCR[EasyOCR]
+  AI -->|LLM inference| HF[Hugging Face (Llama)]
+
+  BE -->|Payment callbacks / verification| PH[PayHere]
+  FE -->|Checkout redirect| PH
+```
+
+---
+
+## Screenshots (Deployed UI)
+
+Add clean screenshots from `nccecare.vercel.app` for evaluators. Recommended:
+
+1. **Dashboard** (role-based landing page)
+2. **Appointment booking flow**
+3. **Admin/Staff panel** (monitoring / roster management)
+4. **AI Medical Report Explainer** (upload + explanation result)
+
+Place images under `docs/screenshots/` and update the links below:
+
+| Screen | Preview |
+|---|---|
+| Dashboard | `![Dashboard](docs/screenshots/dashboard.png)` |
+| Appointment Booking | `![Booking](docs/screenshots/booking.png)` |
+| Admin/Staff | `![Admin](docs/screenshots/admin.png)` |
+| AI Report Explainer | `![AI Report Explainer](docs/screenshots/ai-report-explainer.png)` |
+
+---
+
+## Installation Guide (Local Setup)
+
+> This repository contains a React frontend, a Node/Express backend, and a FastAPI AI backend. Run them as separate services during development.
+
+### Prerequisites
+
+- **Node.js**: \(>= 18\)
+- **npm** or **yarn**
+- **Python**: \(>= 3.10\)
+- **MySQL** access (Aiven or local MySQL instance for development)
+
+### 1) Frontend (React)
+
+From the project root (or your frontend directory if separated):
+
+```bash
+npm install
+npm start
+```
+
+- App runs at: `http://localhost:3000`
+
+### 2) Backend (Node.js + Express)
+
+```bash
+cd backend
+npm install
+npm run dev
+```
+
+Create `backend/.env` and configure values similar to:
+
+```bash
+# Server
+PORT=5000
+NODE_ENV=development
+
+# Database (Aiven MySQL or local)
+DB_HOST=YOUR_DB_HOST
+DB_PORT=3306
+DB_USER=YOUR_DB_USER
+DB_PASSWORD=YOUR_DB_PASSWORD
+DB_NAME=YOUR_DB_NAME
+
+# PayHere
+PAYHERE_MERCHANT_ID=YOUR_MERCHANT_ID
+PAYHERE_SECRET=YOUR_MERCHANT_SECRET
+PAYHERE_RETURN_URL=http://localhost:3000/payment/success
+PAYHERE_CANCEL_URL=http://localhost:3000/payment/cancel
+PAYHERE_NOTIFY_URL=http://localhost:5000/api/payments/notify
+
+# reCAPTCHA
+RECAPTCHA_SITE_KEY=YOUR_SITE_KEY
+RECAPTCHA_SECRET_KEY=YOUR_SECRET_KEY
+
+# FastAPI AI service URL
+AI_SERVICE_URL=http://localhost:8000
+```
+
+### 3) AI Backend (FastAPI)
+
+```bash
+cd ai-backend
+python -m venv .venv
+
+# Windows PowerShell
+.venv\Scripts\Activate.ps1
+
+pip install -r requirements.txt
+uvicorn main:app --reload --host 0.0.0.0 --port 8000
+```
+
+Create `ai-backend/.env` and configure values similar to:
+
+```bash
+# LLM Provider (current implementation: Gemini)
+GEMINI_API_KEY=YOUR_GEMINI_API_KEY
+
+# CORS (optional)
+FRONTEND_URL=http://localhost:3000
+
+# Database (used by AI service for doctor suggestions)
+DB_HOST=YOUR_DB_HOST
+DB_PORT=3306
+DB_USER=YOUR_DB_USER
+DB_PASSWORD=YOUR_DB_PASSWORD
+DB_NAME=YOUR_DB_NAME
+
+# Optional: tuning
+MAX_TOKENS=512
+TEMPERATURE=0.2
+```
+
+### 4) Database setup
+
+- Provision **Aiven MySQL**, or run local MySQL for dev.
+- Run the schema script (if provided) from `backend/database_setup.sql`.
+
+### 5) Verify end-to-end locally
+
+- **Frontend**: `http://localhost:3000`
+- **Backend API**: `http://localhost:5000`
+- **AI API**: `http://localhost:8000`
+
+---
+
+## Contributors
+
+> Replace placeholders with your names, roles, and links.
+
+- **Member 1** — Role (e.g., Full-Stack)
+- **Member 2** — Role (e.g., Backend)
+- **Member 3** — Role (e.g., Frontend)
+- **Member 4** — Role (e.g., AI/ML)
+- **Member 5** — Role (e.g., QA/DevOps)
+- **Member 6** — Role (e.g., UI/UX)
+
+---
+
+## License
+
+This project is licensed under the **MIT License** (or update to your chosen license). See `LICENSE` for details.
+
+---
+
+## Acknowledgments
+
+- **Narammala Channel Centre** for domain requirements and workflow guidance.
+- **Kaggle Healthcare Symptoms–Disease Dataset** for symptom/disease training data reference.
+- **PayHere** for payment gateway services.
+- **Google Gemini** (LLM) and **EasyOCR** for AI-assisted health literacy features.
