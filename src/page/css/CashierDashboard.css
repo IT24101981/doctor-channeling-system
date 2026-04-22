@@ -407,6 +407,21 @@
     border-color: #1E3A5F;
 }
 
+/* ── Table meta line ── */
+.cashier-table-meta {
+    display: flex;
+    justify-content: flex-end;
+    margin: 6px 2px 10px;
+    color: #64748B;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.cashier-table-meta strong {
+    color: #0F172A;
+    font-weight: 700;
+}
+
 /* ── Table ── */
 .cashier-table-wrapper {
     border-radius: 8px;
@@ -636,6 +651,62 @@
 .cashier-empty-state p {
     margin: 0;
     font-size: 13px;
+}
+
+/* ── Pagination ── */
+.cashier-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 14px;
+    padding-top: 10px;
+}
+
+.cashier-page-btn {
+    min-width: 34px;
+    height: 34px;
+    padding: 0 10px;
+    border-radius: 8px;
+    border: 1px solid #E2E8F0;
+    background: #FFFFFF;
+    color: #334155;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+    font-family: 'Inter', sans-serif;
+}
+
+.cashier-page-btn:hover:not(:disabled) {
+    background: #F8FAFC;
+    border-color: #CBD5E1;
+}
+
+.cashier-page-btn.active {
+    background: #1E3A5F;
+    border-color: #1E3A5F;
+    color: #FFFFFF;
+}
+
+.cashier-page-btn.nav {
+    padding: 0 8px;
+    color: #1E3A5F;
+}
+
+.cashier-page-btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.cashier-page-ellipsis {
+    padding: 0 6px;
+    color: #94A3B8;
+    font-weight: 600;
+    user-select: none;
 }
 
 /* ── Modal ── */
