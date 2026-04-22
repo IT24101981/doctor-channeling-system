@@ -158,6 +158,10 @@ const CustomerSupport = () => {
         try {
             const response = await fetch(`${API_URL}/api/support/tickets/${ticketId}`, {
                 method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ patientId: user?.id }),
             });
             if (response.ok) {
                 showNotification('Ticket deleted successfully!');

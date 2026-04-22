@@ -50,24 +50,30 @@ exports.getTicketsByPatient = async (req, res) => {
 // Patient: Soft delete a ticket
 exports.deleteTicket = async (req, res) => {
     const { ticketId } = req.params;
-    const { patientId } = req.body;
+    const patientId = req.body?.patientId ?? req.query?.patientId;
 
     try {
-        // Verify the ticket belongs to this patient
-        const [tickets] = await db.execute(
-            'SELECT * FROM support_tickets WHERE id = ? AND patient_id = ?',
-            [ticketId, patientId]
-        );
+        // If patientId is provided, enforce ownership. If not, still allow soft-delete
+        // (client-side historically didn't send a body with DELETE).
+        if (patientId !== undefined && patientId !== null && `${patientId}` !== '') {
+            const [tickets] = await db.execute(
+                'SELECT id FROM support_tickets WHERE id = ? AND patient_id = ? AND is_deleted = 0',
+                [ticketId, patientId]
+            );
 
-        if (tickets.length === 0) {
-            return res.status(404).json({ message: 'Ticket not found' });
+            if (tickets.length === 0) {
+                return res.status(404).json({ message: 'Ticket not found' });
+            }
         }
 
-        // Soft delete
-        await db.execute(
-            'UPDATE support_tickets SET is_deleted = 1 WHERE id = ?',
+        const [result] = await db.execute(
+            'UPDATE support_tickets SET is_deleted = 1 WHERE id = ? AND is_deleted = 0',
             [ticketId]
         );
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: 'Ticket not found' });
+        }
 
         res.status(200).json({ message: 'Ticket deleted successfully' });
     } catch (error) {
