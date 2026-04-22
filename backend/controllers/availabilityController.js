@@ -75,11 +75,44 @@ exports.updateSlot = async (req, res) => {
         const slotId = req.params.id;
         const { day_of_week, start_time, end_time, capacity, is_available, slot_duration } = req.body;
 
+        // Fetch current slot to check if anything actually changed
+        const [currentSlots] = await db.execute('SELECT * FROM doc_availability_slots WHERE id = ?', [slotId]);
+        
+        if (currentSlots.length === 0) {
+            return res.status(404).json({ message: 'Slot not found' });
+        }
+
+        const currentSlot = currentSlots[0];
+        const newIsAvailable = is_available ? 1 : 0;
+        
+        // Handle time format differences (e.g., '08:00' vs '08:00:00')
+        let start_time_db = currentSlot.start_time;
+        if (start_time_db && start_time_db.length >= 5) {
+            start_time_db = start_time_db.substring(0, 5);
+        }
+        let end_time_db = currentSlot.end_time;
+        if (end_time_db && end_time_db.length >= 5) {
+            end_time_db = end_time_db.substring(0, 5);
+        }
+        
+        const req_start_time = start_time ? start_time.substring(0, 5) : null;
+        const req_end_time = end_time ? end_time.substring(0, 5) : null;
+
+        const isChanged = 
+            currentSlot.day_of_week !== day_of_week ||
+            start_time_db !== req_start_time ||
+            end_time_db !== req_end_time ||
+            Number(currentSlot.capacity) !== Number(capacity) ||
+            currentSlot.is_available !== newIsAvailable ||
+            Number(currentSlot.slot_duration) !== Number(slot_duration);
+
+        const newMarked = isChanged ? 0 : currentSlot.Marked;
+
         await db.execute(
             `UPDATE doc_availability_slots 
-            SET day_of_week = ?, start_time = ?, end_time = ?, capacity = ?, is_available = ?, slot_duration = ?, Marked = 0
+            SET day_of_week = ?, start_time = ?, end_time = ?, capacity = ?, is_available = ?, slot_duration = ?, Marked = ?
             WHERE id = ?`,
-            [day_of_week, start_time, end_time, capacity, is_available ? 1 : 0, slot_duration, slotId]
+            [day_of_week, start_time, end_time, capacity, newIsAvailable, slot_duration, newMarked, slotId]
         );
 
         res.status(200).json({ message: 'Slot updated successfully' });
