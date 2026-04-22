@@ -9,7 +9,7 @@ const ReportExplainer = () => {
     const [uploadedFiles, setUploadedFiles] = useState([]); // Array of File objects
     const [filePreviews, setFilePreviews] = useState([]); // Array of preview objects {url, name, type}
     const [selectedLanguage, setSelectedLanguage] = useState('English');
-    const [selectedModel, setSelectedModel] = useState('Gemini 3.1 Flash Lite');
+    const [selectedModel, setSelectedModel] = useState('Gemini 2.5 Flash');
     const [ocrText, setOcrText] = useState('');
     const [explainedText, setExplainedText] = useState('');
     const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -381,7 +381,7 @@ const ReportExplainer = () => {
                                                 value={selectedModel}
                                                 onChange={(e) => setSelectedModel(e.target.value)}
                                             >
-                                                <option value="Gemini 3.1 Flash Lite">Gemini 3.1 Flash Lite</option>
+                                                <option value="Gemini 2.5 Flash">Gemini 2.5 Flash</option>
                                                 <option value="Gemma 4 26B">Gemma 4 26B</option>
                                                 <option value="Gemma 3 27B">Gemma 3 27B</option>
                                             </select>
