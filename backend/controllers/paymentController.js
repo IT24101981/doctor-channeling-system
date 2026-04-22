@@ -692,6 +692,7 @@ exports.getPaymentStatus = async (req, res) => {
 exports.getAllPaymentsForCashier = async (req, res) => {
     const baseSelect = `
             SELECT
+                p.id AS payment_id,
                 p.appointment_id,
                 NULLIF(TRIM(CONCAT(COALESCE(pt.first_name, ''), ' ', COALESCE(pt.second_name, ''))), '') AS patient_name,
                 pt.email AS patient_email,
@@ -711,6 +712,7 @@ exports.getAllPaymentsForCashier = async (req, res) => {
     try {
         const [rows] = await db.execute(`
             SELECT
+                p.id AS payment_id,
                 p.appointment_id,
                 NULLIF(TRIM(CONCAT(COALESCE(pt.first_name, ''), ' ', COALESCE(pt.second_name, ''))), '') AS patient_name,
                 pt.email AS patient_email,

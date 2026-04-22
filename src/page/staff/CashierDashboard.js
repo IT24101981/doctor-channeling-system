@@ -34,6 +34,7 @@ const CashierDashboard = () => {
     const [error, setError] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [activeFilter, setActiveFilter] = useState('ALL');
+    const [currentPage, setCurrentPage] = useState(1);
     const [modal, setModal] = useState({ open: false, type: '', data: null });
     const [toast, setToast] = useState({ show: false, message: '' });
     const [refundSubmitting, setRefundSubmitting] = useState(false);
@@ -62,6 +63,7 @@ const CashierDashboard = () => {
                             (typeof pending === 'number' && pending > 0)
                     );
                     return {
+                        paymentId: item.payment_id,
                         id: item.appointment_id,
                         orderId: item.transaction_id || 'N/A',
                         patientName: item.patient_name || 'Unknown Patient',
@@ -111,6 +113,41 @@ const CashierDashboard = () => {
         const matchFilter = activeFilter === 'ALL' || p.status === activeFilter;
         return matchSearch && matchFilter;
     });
+
+    const PAGE_SIZE = 20;
+    const totalPages = Math.max(1, Math.ceil(filteredPayments.length / PAGE_SIZE));
+    const safePage = Math.min(Math.max(1, currentPage), totalPages);
+    const pageStart = (safePage - 1) * PAGE_SIZE;
+    const pagePayments = filteredPayments.slice(pageStart, pageStart + PAGE_SIZE);
+    const showingFrom = filteredPayments.length === 0 ? 0 : pageStart + 1;
+    const showingTo = pageStart + pagePayments.length;
+
+    useEffect(() => {
+        // Reset page when the query changes.
+        setCurrentPage(1);
+    }, [searchTerm, activeFilter]);
+
+    useEffect(() => {
+        if (safePage !== currentPage) setCurrentPage(safePage);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [safePage]);
+
+    const buildPageItems = () => {
+        const pages = [];
+        const push = (v) => pages.push(v);
+        if (totalPages <= 9) {
+            for (let i = 1; i <= totalPages; i += 1) push(i);
+            return pages;
+        }
+        push(1);
+        const left = Math.max(2, safePage - 2);
+        const right = Math.min(totalPages - 1, safePage + 2);
+        if (left > 2) push('…');
+        for (let i = left; i <= right; i += 1) push(i);
+        if (right < totalPages - 1) push('…');
+        push(totalPages);
+        return pages;
+    };
 
     const handleRefund = (payment) => setModal({ open: true, type: 'refund', data: payment });
     const handleOpenPatient = (payment) => setModal({ open: true, type: 'patient', data: payment });
@@ -390,11 +427,17 @@ const CashierDashboard = () => {
                         </div>
 
                         {/* Table */}
+                        <div className="cashier-table-meta">
+                            <span>
+                                Showing <strong>{showingFrom}-{showingTo}</strong> of <strong>{filteredPayments.length}</strong> payments
+                            </span>
+                        </div>
                         <div className="cashier-table-wrapper">
                             {filteredPayments.length > 0 ? (
                                 <table className="cashier-table">
                                     <thead>
                                         <tr>
+                                            <th style={{ width: 54 }}>#</th>
                                             <th>Order ID</th>
                                             <th>Patient</th>
                                             <th>Doctor</th>
@@ -406,8 +449,11 @@ const CashierDashboard = () => {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {filteredPayments.map(payment => (
-                                            <tr key={payment.orderId}>
+                                        {pagePayments.map((payment, idx) => (
+                                            <tr key={payment.paymentId ?? `${payment.orderId}-${payment.date ?? ''}-${pageStart + idx}`}>
+                                                <td style={{ fontFamily: 'monospace', fontSize: '12px', color: '#94A3B8' }}>
+                                                    {pageStart + idx + 1}
+                                                </td>
                                                 <td style={{ fontFamily: 'monospace', fontSize: '12px', color: '#64748B' }}>
                                                     {payment.orderId.length > 20 ? payment.orderId.substring(0, 20) + '…' : payment.orderId}
                                                 </td>
@@ -483,6 +529,45 @@ const CashierDashboard = () => {
                                 </div>
                             )}
                         </div>
+
+                        {filteredPayments.length > 0 && totalPages > 1 && (
+                            <div className="cashier-pagination">
+                                <button
+                                    type="button"
+                                    className="cashier-page-btn nav"
+                                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                                    disabled={safePage === 1}
+                                    aria-label="Previous page"
+                                >
+                                    <span className="material-symbols-outlined" style={{ fontSize: 18 }}>chevron_left</span>
+                                </button>
+
+                                {buildPageItems().map((item, idx) => (
+                                    item === '…' ? (
+                                        <span key={`ellipsis-${idx}`} className="cashier-page-ellipsis">…</span>
+                                    ) : (
+                                        <button
+                                            key={item}
+                                            type="button"
+                                            className={`cashier-page-btn ${item === safePage ? 'active' : ''}`}
+                                            onClick={() => setCurrentPage(Number(item))}
+                                        >
+                                            {item}
+                                        </button>
+                                    )
+                                ))}
+
+                                <button
+                                    type="button"
+                                    className="cashier-page-btn nav"
+                                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                                    disabled={safePage === totalPages}
+                                    aria-label="Next page"
+                                >
+                                    <span className="material-symbols-outlined" style={{ fontSize: 18 }}>chevron_right</span>
+                                </button>
+                            </div>
+                        )}
                     </div>
                 )}
             </div>
