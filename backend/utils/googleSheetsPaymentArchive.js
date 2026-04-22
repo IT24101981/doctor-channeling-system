@@ -56,9 +56,38 @@ function isGoogleSheetsArchiveConfigured() {
     return Boolean(getClientEmail() && getPrivateKey());
 }
 
+function formatDateTimeLK(value) {
+    const d = value instanceof Date ? value : new Date(value);
+    if (Number.isNaN(d.getTime())) return '';
+    // Human-readable, stable format for non-technical users.
+    // Example: "22 Apr 2026 14:28:24 (LK)"
+    const parts = new Intl.DateTimeFormat('en-GB', {
+        timeZone: 'Asia/Colombo',
+        year: 'numeric',
+        month: 'short',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false
+    }).format(d);
+    return `${parts.replace(',', '')} (LK)`;
+}
+
 function formatCell(value) {
     if (value == null) return '';
-    if (value instanceof Date) return value.toISOString();
+    if (value instanceof Date) return formatDateTimeLK(value);
+    if (typeof value === 'string') {
+        const s = value.trim();
+        // If it looks like an ISO string or MySQL datetime, make it human-readable in LK time.
+        if (
+            /^\d{4}-\d{2}-\d{2}T/.test(s) ||
+            /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/.test(s)
+        ) {
+            const formatted = formatDateTimeLK(s);
+            return formatted || s;
+        }
+    }
     return String(value);
 }
 
