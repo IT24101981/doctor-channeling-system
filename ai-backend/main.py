@@ -54,7 +54,9 @@ def query_llm_for_report(report_text, language, model_name: str = "Gemini 2.5 Fl
     model_map = {
         "Gemini 2.5 Flash": "models/gemini-2.5-flash",
         "Gemma 4 26B": "models/gemma-4-26b-a4b-it",
-        "Gemma 3 27B": "models/gemma-3-27b-it"
+        "Gemma 3 27B": "models/gemma-3-27b-it",
+        "Gemini 3.1 Flash Lite Preview": "models/gemini-3.1-flash-lite-preview"
+
         
     }
     
