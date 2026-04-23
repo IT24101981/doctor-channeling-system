@@ -46,7 +46,7 @@ class ReportTextRequest(BaseModel):
     
 
 # Gemini for report explanation
-def query_llm_for_report(report_text, language, model_name: str = "Gemini 3.1 Flash Lite"):
+def query_llm_for_report(report_text, language, model_name: str = "Gemini 2.5 Flash"):
     """Send medical report text to Gemini LLM for a simple explanation."""
     prompt = REPORT_EXPLAIN_PROMPT.format(report_text=report_text, language=language)
     
@@ -54,8 +54,8 @@ def query_llm_for_report(report_text, language, model_name: str = "Gemini 3.1 Fl
     model_map = {
         "Gemini 2.5 Flash": "models/gemini-2.5-flash",
         "Gemma 4 26B": "models/gemma-4-26b-a4b-it",
-        "Gemma 3 27B": "models/gemma-3-27b-it",
-        "Gemini 3.1 Flash Lite": "models/gemini-3.1-flash-lite-preview"
+        "Gemma 3 27B": "models/gemma-3-27b-it"
+        
     }
     
     selected_model = model_map.get(model_name, "models/gemma-4-26b-a4b-it")
