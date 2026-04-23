@@ -382,6 +382,7 @@ const ReportExplainer = () => {
                                                 onChange={(e) => setSelectedModel(e.target.value)}
                                             >
                                                 <option value="Gemini 2.5 Flash">Gemini 2.5 Flash</option>
+                                                <option value="Gemini 3.1 Flash Lite Preview">Gemini 3.1 Flash Lite Preview</option>
                                                 <option value="Gemma 4 26B">Gemma 4 26B</option>
                                                 <option value="Gemma 3 27B">Gemma 3 27B</option>
                                             </select>
