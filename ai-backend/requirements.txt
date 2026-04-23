@@ -1,6 +1,5 @@
 fastapi
 uvicorn[standard]
-huggingface_hub
 python-dotenv
 mysql-connector-python
 easyocr

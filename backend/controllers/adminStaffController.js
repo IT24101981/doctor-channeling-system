@@ -28,6 +28,26 @@ exports.createStaff = async (req, res) => {
             return res.status(409).json({ message: 'Username already exists' });
         }
 
+        const trimmedEmail =
+            email && String(email).trim() !== '' ? String(email).trim() : null;
+        const trimmedPhone =
+            phone_number != null && String(phone_number).trim() !== ''
+                ? String(phone_number).trim()
+                : null;
+
+        if (trimmedEmail) {
+            const [emailRows] = await db.execute('SELECT id FROM staff WHERE email = ?', [trimmedEmail]);
+            if (emailRows.length > 0) {
+                return res.status(409).json({ message: 'Email already exists' });
+            }
+        }
+        if (trimmedPhone) {
+            const [phoneRows] = await db.execute('SELECT id FROM staff WHERE phone_number = ?', [trimmedPhone]);
+            if (phoneRows.length > 0) {
+                return res.status(409).json({ message: 'Phone number already exists' });
+            }
+        }
+
         // Hash the password
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
@@ -35,13 +55,13 @@ exports.createStaff = async (req, res) => {
         // Insert into database
         const [result] = await db.execute(
             'INSERT INTO staff (username, password_hash, role, account_status, phone_number, email) VALUES (?, ?, ?, ?, ?, ?)',
-            [username, hashedPassword, role, account_status || 'Active', phone_number || null, email || null]
+            [username, hashedPassword, role, account_status || 'Active', trimmedPhone, trimmedEmail]
         );
 
         // If email is provided, send credentials to the staff member.
         let emailSent = false;
         let emailProvider = null;
-        if (email && String(email).trim() !== '') {
+        if (trimmedEmail) {
             const baseUrl = (process.env.FRONTEND_URL || '').replace(/\/+$/, '');
             const staffLoginUrl = baseUrl ? `${baseUrl}/ecare/staff-login` : null;
 
@@ -57,7 +77,7 @@ exports.createStaff = async (req, res) => {
 
             try {
                 const result = await sendMail({
-                    to: String(email).trim(),
+                    to: trimmedEmail,
                     subject,
                     text,
                     html:
@@ -104,8 +124,34 @@ exports.updateStaff = async (req, res) => {
             return res.status(404).json({ message: 'Staff member not found' });
         }
 
+        const trimmedEmail =
+            email != null && String(email).trim() !== '' ? String(email).trim() : null;
+        const trimmedPhone =
+            phone_number != null && String(phone_number).trim() !== ''
+                ? String(phone_number).trim()
+                : null;
+
+        if (trimmedEmail) {
+            const [emailRows] = await db.execute('SELECT id FROM staff WHERE email = ? AND id != ?', [
+                trimmedEmail,
+                id
+            ]);
+            if (emailRows.length > 0) {
+                return res.status(409).json({ message: 'Email already exists' });
+            }
+        }
+        if (trimmedPhone) {
+            const [phoneRows] = await db.execute(
+                'SELECT id FROM staff WHERE phone_number = ? AND id != ?',
+                [trimmedPhone, id]
+            );
+            if (phoneRows.length > 0) {
+                return res.status(409).json({ message: 'Phone number already exists' });
+            }
+        }
+
         let updateQuery = 'UPDATE staff SET username = ?, role = ?, account_status = ?, phone_number = ?, email = ?';
-        let queryParams = [username, role, account_status, phone_number, email];
+        let queryParams = [username, role, account_status, trimmedPhone, trimmedEmail];
 
         // Only update password if provided
         if (password && password.trim() !== '') {
