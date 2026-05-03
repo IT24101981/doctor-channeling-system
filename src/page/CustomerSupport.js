@@ -3,8 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import ECareNavBar from '../Components/eCareNavBar';
 import { formatMediumDateLK } from '../utils/sriLankaTime';
 import './css/CustomerSupport.css';
+import { API_BASE_URL } from '../config';
 
-const API_URL = process.env.REACT_APP_API_URL;
+const API_URL = API_BASE_URL;
 
 const CustomerSupport = () => {
     const navigate = useNavigate();
